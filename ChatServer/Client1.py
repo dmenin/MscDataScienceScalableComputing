@@ -26,19 +26,32 @@ def send_msg(msg):
 
 JOIN_MSG='JOIN_CHATROOM: {}\nCLIENT_IP: {}\nPORT: {}\nCLIENT_NAME: {}'		
 LEAVE_MSG='LEAVE_CHATROOM: {}\nJOIN_ID: {}\nCLIENT_NAME: {}'
+CHAT_MSG='CHAT: {}\nJOIN_ID: {}\nCLIENT_NAME: {}\nMESSAGE: {}'#needs to end with \n\n
 
 
+#
+#send_msg(JOIN_MSG.format('chat1','123.456.789.000','123','client1'))
+#send_msg(LEAVE_MSG.format('1', '101', 'client3'))
+#send_msg('KILL_SERVICE')
 
-send_msg(JOIN_MSG.format('chat1','123.456.789.000','123','client1'))
-send_msg(LEAVE_MSG.format('1', '100', 'client1'))
-send_msg('KILL_SERVICE')
 
-
-#more than one msg:
+#1)Client 1 joins chat1
 sock1 = create_client_socket()
-msg = JOIN_MSG.format('chat2','123.456.789.000','123','client2')
+msg = JOIN_MSG.format('chat1','123.456.789.000','123','client1')
 sock1.sendall(msg.encode('utf-8'))
 print ('Received "%s"' % sock1.recv(4096))
+
+
+CHAT_MSG='CHAT: {}\nJOIN_ID: {}\nCLIENT_NAME: {}\nMESSAGE: {}'.format('1', '100', 'client1', 'HIIIIIIII')
+sock1.sendall(CHAT_MSG.encode('utf-8'))
+
+
+
+sock2.sendall(LEAVE_MSG.format('1', '100', 'client1').encode('utf-8'))
+print ('Received "%s"' % sock2.recv(4096))
+
+
+
 
 
 sock2 = create_client_socket()

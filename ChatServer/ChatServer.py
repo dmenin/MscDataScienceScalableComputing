@@ -26,7 +26,13 @@ class ChatRoom:
     def RemoveClient(self, name, id):
         #print (self.name, self.ID, name, id)
         self.clients = [l for l in self.clients if l[0] != name]
-     
+    
+    def GetSockets(self):
+        listOfSockets = []
+        for c in self.clients:
+            listOfSockets.append(c[2])
+        
+        return listOfSockets
         
 #l = []
 #l.append((1, 'a'))        
@@ -83,12 +89,12 @@ class Server(object):
                     self.CONNECTION_LIST.remove(socket)
 
     def send_data_to(self, sock, message):
-        try:
+#        try:
             sock.send(message)
-        except:
-            # broken socket connection may be, chat client pressed ctrl+c for example
-            socket.close()
-            self.CONNECTION_LIST.remove(sock)
+#        except:
+#            # broken socket connection may be, chat client pressed ctrl+c for example
+#            socket.close()
+#            self.CONNECTION_LIST.remove(sock)
 
     def getLeft(self, data):
         '''
@@ -181,7 +187,29 @@ class Server(object):
         
         return self.LEFT_MSG.format(chatroomid, join_id)
       
+    #CHAT: [ROOM_REF]
+    #JOIN_ID: [integer identifying client to server]
+    #CLIENT_NAME: [string identifying client user]
+    #MESSAGE: [string terminated with '\n\n']
+    #CHAT_MSG='CHAT: chat1\nJOIN_ID: 123\nCLIENT_NAME: Diego\nMESSAGE: Hi\n\n'
+    def send_message(self, data):
+        assert(self.getLeft(data[1]) == 'JOIN_ID')
+        assert(self.getLeft(data[2]) == 'CLIENT_NAME')
+        assert(self.getLeft(data[3]) == 'MESSAGE')
         
+        chatroomid  = int(self.getRight(data[0])) 
+        join_id     = int(self.getRight(data[1]))
+        client_name = self.getRight(data[2])
+        msg         = self.getRight(data[3])
+        
+        roomname = self.findRoomNameByID(chatroomid)
+        sockets = self.chatrooms[roomname].GetSockets()
+        for s in sockets:
+            print ('Sending data to:',s)
+            self.send_data_to(s, msg.encode('utf-8'))
+    
+    
+          
     #data = 'JOIN_CHATROOM: chat1\nCLIENT_IP: 123.456.789.000\nPORT: 123\nCLIENT_NAME: client1'     
     #data = data.splitlines()   
     #getLeft(data[0])   
@@ -225,6 +253,7 @@ class Server(object):
                         data = data.splitlines()
                         #First item of the message should be the action:
                         action = self.getLeft(data[0])
+                        print (action)
                         if action == 'JOIN_CHATROOM':
                             print('Join Chatroom request')
                             result = self.join_chat(data, sock)
@@ -233,6 +262,10 @@ class Server(object):
                             print('Leave Chatroom request')
                             result = self.leave_chat(data)
                             self.send_data_to(sock, result.encode('utf-8'))
+                        elif action == 'CHAT':
+                            print('Chat Message')
+                            self.send_message(data)
+                            
 #                            if self.user_name_dict[sock].username is None:
 #                                self.set_client_user_name(data, sock)
 #                            else:
