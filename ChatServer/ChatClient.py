@@ -6,7 +6,7 @@ import sys
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Connect the socket to the port where the server is listening
-server_address = ('localhost', 5001)
+server_address = ('localhost', 5003)
 print ('Connecting to %s port %s' % server_address)
 sock.connect(server_address)
 
@@ -17,6 +17,7 @@ JOIN_MSG='JOIN_CHATROOM: {}\nCLIENT_IP: {}\nPORT: {}\nCLIENT_NAME: {}'
 try:
     # Send data
     message = JOIN_MSG.format('chat1','123.456.789.000','123','client1')
+    message = 'EXIT'
     #print ('Sending "%s"' % message)
     sock.sendall(message.encode('utf-8'))
     #sock.send(message)

@@ -1,4 +1,5 @@
 import socket, select
+import os
 
 
 class Server(object):
@@ -8,7 +9,7 @@ class Server(object):
     
     def __init__(self):       
         self.server="localhost"
-        self.port = 5001
+        self.port = 5003
         self.user_name_dict = {}
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.JOINED_MSG = 'JOINED_CHATROOM: {}\nSERVER_IP: {}\nPORT: {}\ROOM_REF: {}\nJOIN_ID: {}'
@@ -111,29 +112,34 @@ class Server(object):
                 if sock == self.server_socket:
                     self.setup_connection()
                 else:# Some incoming message from a client
-                    try:
-                        data = sock.recv(self.RECV_BUFFER)
-                        data = data.decode('utf-8')
-                        if data:
-                            data = data.splitlines() #Ex: ['JOIN_CHATROOM: {}', 'CLIENT_IP: {}', 'PORT: {}', 'CLIENT_NAME: {}']
+#                    try:
+                    data = sock.recv(self.RECV_BUFFER)
+                    data = data.decode('utf-8')
+                    if data:
+                        if data =='EXIT':
+                            #self.server_socket.shutdown(1)
+                            #self.server_socket.close()
+                            os._exit(1)
                             
-                            #First item of the message should be the action:
-                            action = self.getLeft(data[0])
-                            if action == 'JOIN_CHATROOM':
-                                print('Join Chatroom request')
-                                result = self.join_chat(data)
-                                self.send_data_to(sock, result.encode('utf-8'))
-                                
+                        data = data.splitlines() #Ex: ['JOIN_CHATROOM: {}', 'CLIENT_IP: {}', 'PORT: {}', 'CLIENT_NAME: {}']
+                        
+                        #First item of the message should be the action:
+                        action = self.getLeft(data[0])
+                        if action == 'JOIN_CHATROOM':
+                            print('Join Chatroom request')
+                            result = self.join_chat(data)
+                            self.send_data_to(sock, result.encode('utf-8'))
+                            
 #                            if self.user_name_dict[sock].username is None:
 #                                self.set_client_user_name(data, sock)
 #                            else:
 #                                self.broadcast_data(sock, "\r" + '<' + self.user_name_dict[sock].username + '> ' + data)
 
-                    except:
-                        print ("Exception")
-                        sock.close()
-                        self.CONNECTION_LIST.remove(sock)
-                        continue
+#                    except Exception as ex:
+#                        print (ex)
+#                        sock.close()
+#                        self.CONNECTION_LIST.remove(sock)
+#                        continue
 
         self.server_socket.close()
 
