@@ -13,6 +13,7 @@ class Server(object):
         self.user_name_dict = {}
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.JOINED_MSG = 'JOINED_CHATROOM: {}\nSERVER_IP: {}\nPORT: {}\ROOM_REF: {}\nJOIN_ID: {}'
+        self.LEFT_MSG = 'LEFT_CHATROOM: {}\nJOIN_ID: {}'
 
         self.chatrooms = {}
         self.CurrentChatroomID = 1
@@ -68,6 +69,18 @@ class Server(object):
         '''
         return data[data.find(' ')+1: len(data)]
 
+    def findRoomNameByID(self, roomid):
+        roomname='not found'
+        
+        for key, val in self.chatrooms.items():
+            if str(val) == str(roomid):
+                roomname = key
+        print (roomname)
+        return roomname
+    
+#    chatrooms[2] ='b'
+#    for key, val in chatrooms.items():
+#        print (key, val)
     #RECEIVED MESSAGE:
     #JOIN_CHATROOM: [chatroom name]
     #CLIENT_IP: [IP Address of client if UDP | 0 if TCP]
@@ -95,7 +108,35 @@ class Server(object):
             self.clients[cn] = self.CurrentClientID
             self.CurrentClientID +=1
         return self.JOINED_MSG.format(cr, self.server, self.port, self.chatrooms[cr], self.clients[cn])
+
+    #RECEIVED MESSAGE:
+    #LEAVE_CHATROOM: [ROOM_REF]
+    #JOIN_ID: [integer previously provided by server on join]
+    #CLIENT_NAME: [string Handle to identifier client user]
+    
+    #RETURNS:
+    #LEFT_CHATROOM: [ROOM_REF]
+    #JOIN_ID: [integer previously provided by server on join]
+    def leave_chat(self, data):
+        cr = int(self.getRight(data[0]))
+        roomname = self.findRoomNameByID(cr)
+
+        if roomname == 'not found':
+            return 'ERROR_CODE: 200\nERROR_DESCRIPTION: You are requesting to leave a chatroom that doesnt exist'
         
+        assert(self.getLeft(data[1]) == 'JOIN_ID')
+        assert(self.getLeft(data[2]) == 'CLIENT_NAME')
+        
+        join_id = int(self.getRight(data[1]))
+        client_name = self.getRight(data[2])
+        
+        if self.clients[client_name] != join_id:
+            return 'ERROR_CODE: 210\nERROR_DESCRIPTION: Client name and join ID do not match'
+        
+        #do the actual leave??
+        
+        return self.LEFT_MSG.format(cr, join_id)
+      
         
     #data = 'JOIN_CHATROOM: chat1\nCLIENT_IP: 123.456.789.000\nPORT: 123\nCLIENT_NAME: client1'     
     #data = data.splitlines()   
@@ -108,17 +149,14 @@ class Server(object):
             read_sockets, write_sockets, error_sockets = select.select(self.CONNECTION_LIST, [], [])
 
             for sock in read_sockets:
-                # New connection
-                if sock == self.server_socket:
+                if sock == self.server_socket: #New connection
                     self.setup_connection()
-                else:# Some incoming message from a client
+                else:
 #                    try:
                     data = sock.recv(self.RECV_BUFFER)
                     data = data.decode('utf-8')
                     if data:
                         if data =='EXIT':
-                            #self.server_socket.shutdown(1)
-                            #self.server_socket.close()
                             os._exit(1)
                             
                         data = data.splitlines() #Ex: ['JOIN_CHATROOM: {}', 'CLIENT_IP: {}', 'PORT: {}', 'CLIENT_NAME: {}']
@@ -129,7 +167,10 @@ class Server(object):
                             print('Join Chatroom request')
                             result = self.join_chat(data)
                             self.send_data_to(sock, result.encode('utf-8'))
-                            
+                        elif action == 'LEAVE_CHATROOM':
+                            print('Leave Chatroom request')
+                            result = self.leave_chat(data)
+                            self.send_data_to(sock, result.encode('utf-8'))
 #                            if self.user_name_dict[sock].username is None:
 #                                self.set_client_user_name(data, sock)
 #                            else:
