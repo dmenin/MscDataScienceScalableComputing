@@ -30,8 +30,37 @@ LEAVE_MSG='LEAVE_CHATROOM: {}\nJOIN_ID: {}\nCLIENT_NAME: {}'
 
 
 send_msg(JOIN_MSG.format('chat1','123.456.789.000','123','client1'))
-
-
 send_msg(LEAVE_MSG.format('1', '100', 'client1'))
+send_msg('KILL_SERVICE')
 
-send_msg('EXIT')
+
+#more than one msg:
+sock1 = create_client_socket()
+msg = JOIN_MSG.format('chat2','123.456.789.000','123','client2')
+sock1.sendall(msg.encode('utf-8'))
+print ('Received "%s"' % sock1.recv(4096))
+
+
+sock2 = create_client_socket()
+msg = JOIN_MSG.format('chat1','123.456.789.000','123','client2')
+#msg = 'HELO text\n'
+msg = 'CHATROOMS'       
+sock2.sendall(msg.encode('utf-8'))
+print ('Received "%s"' % sock2.recv(4096))
+
+
+
+msg = LEAVE_MSG.format('1', '100', 'client1')
+sock.sendall(msg.encode('utf-8'))
+print ('Received "%s"' % sock.recv(4096))
+
+
+sock.close()
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

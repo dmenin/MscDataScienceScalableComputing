@@ -1,5 +1,37 @@
 import socket, select
 import os
+import time
+
+
+class ChatRoom:
+
+    def __init__(self, name, ID):
+        self.name = name
+        self.ID = ID
+
+        #list of tuples
+        self.clients = []
+    
+    def ShowMe(self):
+        '''
+        Print info about the ChatRoom and its members
+        '''
+        print('#Chatroom ID:{}, Name:{} -- Clients:'.format(self.ID, self.name))
+        for c in self.clients:
+            print('#    Client ID: {} Name:{}'.format(c[1], c[0]))
+            
+    def AddClient(self, name, id, socket):
+        self.clients.append((name, id, socket))
+
+    def RemoveClient(self, name, id):
+        #print (self.name, self.ID, name, id)
+        self.clients = [l for l in self.clients if l[0] != name]
+     
+        
+#l = []
+#l.append((1, 'a'))        
+#l.append((2, 'b'))
+
 
 
 class Server(object):
@@ -11,9 +43,12 @@ class Server(object):
         self.server="localhost"
         self.port = 5003
         self.user_name_dict = {}
+        self.myStudentId = 13312410
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.HELLO_MSG  = 'HELO text\nIP:{}\nPort:{}\nStudentID:{}'
         self.JOINED_MSG = 'JOINED_CHATROOM: {}\nSERVER_IP: {}\nPORT: {}\ROOM_REF: {}\nJOIN_ID: {}'
-        self.LEFT_MSG = 'LEFT_CHATROOM: {}\nJOIN_ID: {}'
+        self.LEFT_MSG   = 'LEFT_CHATROOM: {}\nJOIN_ID: {}'
+        
 
         self.chatrooms = {}
         self.CurrentChatroomID = 1
@@ -73,14 +108,12 @@ class Server(object):
         roomname='not found'
         
         for key, val in self.chatrooms.items():
-            if str(val) == str(roomid):
+            #val is the ChatRoom Object
+            if str(val.ID) == str(roomid):
                 roomname = key
-        print (roomname)
         return roomname
-    
-#    chatrooms[2] ='b'
-#    for key, val in chatrooms.items():
-#        print (key, val)
+
+
     #RECEIVED MESSAGE:
     #JOIN_CHATROOM: [chatroom name]
     #CLIENT_IP: [IP Address of client if UDP | 0 if TCP]
@@ -93,21 +126,32 @@ class Server(object):
     #PORT: [port number of chat room]
     #ROOM_REF: [integer that uniquely identifies chat room on server]
     #JOIN_ID: [integer that uniquely identifies client joining]
-    def join_chat(self, data):
-        cr = self.getRight(data[0])
-        if cr not in self.chatrooms:
-            self.chatrooms[cr] = self.CurrentChatroomID 
-            self.CurrentChatroomID +=1
-        
+    def join_chat(self, data, socket):
         assert(self.getLeft(data[1]) == 'CLIENT_IP')
         assert(self.getLeft(data[2]) == 'PORT')
         assert(self.getLeft(data[3]) == 'CLIENT_NAME')
-        
+
         cn = self.getRight(data[3])
         if cn not in self.clients:
+            #Create new client if it doesnt exist
             self.clients[cn] = self.CurrentClientID
             self.CurrentClientID +=1
-        return self.JOINED_MSG.format(cr, self.server, self.port, self.chatrooms[cr], self.clients[cn])
+        
+        #Check if client is already on the chatroom??
+        
+        chatname = self.getRight(data[0])
+        if chatname not in self.chatrooms:
+            #Creating a New ChatRoom
+            c = ChatRoom(chatname, self.CurrentChatroomID) 
+            self.chatrooms[chatname] = c 
+            self.CurrentChatroomID +=1
+        else:
+            c = self.chatrooms[chatname]
+        
+        
+        c.AddClient(cn, self.clients[cn], socket)
+        return self.JOINED_MSG.format(chatname, self.server, self.port, 
+                                      self.chatrooms[chatname].ID, self.clients[cn])
 
     #RECEIVED MESSAGE:
     #LEAVE_CHATROOM: [ROOM_REF]
@@ -118,8 +162,8 @@ class Server(object):
     #LEFT_CHATROOM: [ROOM_REF]
     #JOIN_ID: [integer previously provided by server on join]
     def leave_chat(self, data):
-        cr = int(self.getRight(data[0]))
-        roomname = self.findRoomNameByID(cr)
+        chatroomid = int(self.getRight(data[0]))        
+        roomname = self.findRoomNameByID(chatroomid)
 
         if roomname == 'not found':
             return 'ERROR_CODE: 200\nERROR_DESCRIPTION: You are requesting to leave a chatroom that doesnt exist'
@@ -133,9 +177,9 @@ class Server(object):
         if self.clients[client_name] != join_id:
             return 'ERROR_CODE: 210\nERROR_DESCRIPTION: Client name and join ID do not match'
         
-        #do the actual leave??
+        self.chatrooms[roomname].RemoveClient(client_name, join_id)
         
-        return self.LEFT_MSG.format(cr, join_id)
+        return self.LEFT_MSG.format(chatroomid, join_id)
       
         
     #data = 'JOIN_CHATROOM: chat1\nCLIENT_IP: 123.456.789.000\nPORT: 123\nCLIENT_NAME: client1'     
@@ -148,24 +192,42 @@ class Server(object):
             # Get the list sockets which are ready to be read through select
             read_sockets, write_sockets, error_sockets = select.select(self.CONNECTION_LIST, [], [])
 
+#            time.sleep(1)
+#            print ('Read:')
+#            for c in read_sockets:
+#                print ('    ', c)
+#            print ('Write:')
+#            for c in write_sockets:
+#                print ('    ', c)
+#            print ('Error:')
+#            for c in error_sockets:
+#                print ('    ', c)
+#            print('-------------------------\n')
+            
+            
+            
             for sock in read_sockets:
                 if sock == self.server_socket: #New connection
+                    print ('New Connection')
                     self.setup_connection()
                 else:
 #                    try:
                     data = sock.recv(self.RECV_BUFFER)
                     data = data.decode('utf-8')
                     if data:
-                        if data =='EXIT':
+                        if data == 'KILL_SERVICE':
                             os._exit(1)
-                            
-                        data = data.splitlines() #Ex: ['JOIN_CHATROOM: {}', 'CLIENT_IP: {}', 'PORT: {}', 'CLIENT_NAME: {}']
-                        
+                        if data == 'HELO text\n':
+                            self.send_data_to(sock, self.HELLO_MSG.format(self.server, self.port, self.myStudentId).encode('utf-8'))
+                        if data == 'CHATROOMS':
+                            self.ShowChatRooms()
+    
+                        data = data.splitlines()
                         #First item of the message should be the action:
                         action = self.getLeft(data[0])
                         if action == 'JOIN_CHATROOM':
                             print('Join Chatroom request')
-                            result = self.join_chat(data)
+                            result = self.join_chat(data, sock)
                             self.send_data_to(sock, result.encode('utf-8'))
                         elif action == 'LEAVE_CHATROOM':
                             print('Leave Chatroom request')
@@ -183,6 +245,12 @@ class Server(object):
 #                        continue
 
         self.server_socket.close()
+    
+    def ShowChatRooms(self):
+        print('\n############## Listing all {} chatrooms:############### '.format(len(self.chatrooms)))
+        for c in self.chatrooms:
+            self.chatrooms[c].ShowMe()
+        print('#######################################################')
 
     def set_client_user_name(self, data, sock):
         self.user_name_dict[sock].username = data.strip()
