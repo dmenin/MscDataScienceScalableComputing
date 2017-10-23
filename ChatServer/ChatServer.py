@@ -46,12 +46,12 @@ class Server(object):
     RECV_BUFFER = 4096  # Advisable to keep it as an exponent of 2
     
     def __init__(self):       
-        self.server="localhost"
+        self.server="localhost"#"10.6.43.95" #"localhost"
         self.port = 5003
         self.user_name_dict = {}
         self.myStudentId = 13312410
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.HELLO_MSG  = 'HELO text\nIP:{}\nPort:{}\nStudentID:{}'
+        self.HELLO_MSG  = 'HELO {}\nIP:{}\nPort:{}\nStudentID:{}'
         self.JOINED_MSG = 'JOINED_CHATROOM: {}\nSERVER_IP: {}\nPORT: {}\ROOM_REF: {}\nJOIN_ID: {}'
         self.LEFT_MSG   = 'LEFT_CHATROOM: {}\nJOIN_ID: {}'
         
@@ -245,16 +245,17 @@ class Server(object):
                     if data:
                         if data == 'KILL_SERVICE':
                             os._exit(1)
-                        if data == 'HELO text\n':
-                            self.send_data_to(sock, self.HELLO_MSG.format(self.server, self.port, self.myStudentId).encode('utf-8'))
-                        if data == 'CHATROOMS':
+                        if data == 'CHATROOMS': #DEBUG
                             self.ShowChatRooms()
     
                         data = data.splitlines()
                         #First item of the message should be the action:
                         action = self.getLeft(data[0])
                         print (action)
-                        if action == 'JOIN_CHATROOM':
+                        if action == 'Hell': #all actions have a ":", except the "hello" action
+                            returnmsg = self.getRight(data[0])
+                            self.send_data_to(sock, self.HELLO_MSG.format(returnmsg, self.server, self.port, self.myStudentId).encode('utf-8'))
+                        elif action == 'JOIN_CHATROOM':
                             print('Join Chatroom request')
                             result = self.join_chat(data, sock)
                             self.send_data_to(sock, result.encode('utf-8'))

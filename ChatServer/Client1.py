@@ -70,6 +70,13 @@ print ('Received "%s"' % sock.recv(4096))
 
 sock.close()
  
+
+
+sockMSG = create_client_socket()
+msg = 'Hello myMessage'
+sockMSG .sendall(msg.encode('utf-8'))
+print ('Received "%s"' % sockMSG .recv(4096))
+
  
  
  
