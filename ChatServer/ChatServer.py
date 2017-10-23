@@ -46,7 +46,7 @@ class Server(object):
     RECV_BUFFER = 4096  # Advisable to keep it as an exponent of 2
     
     def __init__(self):       
-        self.server='localhost' #"#"10.6.43.95" #"localhost"
+        self.server='10.62.0.17'
         self.port = 5000
         self.user_name_dict = {}
         self.myStudentId = 13312410
@@ -219,6 +219,9 @@ class Server(object):
         while 1:
             # Get the list sockets which are ready to be read through select
             read_sockets, write_sockets, error_sockets = select.select(self.CONNECTION_LIST, [], [])
+            print ("XXXXX")
+
+
 
 #            time.sleep(1)
 #            print ('Read:')
