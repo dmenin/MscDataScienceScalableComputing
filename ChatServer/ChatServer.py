@@ -46,8 +46,8 @@ class Server(object):
     RECV_BUFFER = 4096  # Advisable to keep it as an exponent of 2
     
     def __init__(self):       
-        self.server="localhost"#"10.6.43.95" #"localhost"
-        self.port = 5003
+        self.server="10.6.43.95"#localhost"#"10.6.43.95" #"localhost"
+        self.port = 60000
         self.user_name_dict = {}
         self.myStudentId = 13312410
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

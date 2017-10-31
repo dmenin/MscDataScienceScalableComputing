@@ -2,12 +2,14 @@
 import socket
 import sys
 
+#socket.gethostname()
+
 def create_client_socket():
     # Create a TCP/IP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     # Connect the socket to the port where the server is listening
-    server_address = ('localhost', 5003)
+    server_address = ('192.168.0.123', 5000) #'localhost' 
     print ('Connecting to %s port %s' % server_address)
     sock.connect(server_address)
     return sock
@@ -30,8 +32,10 @@ CHAT_MSG='CHAT: {}\nJOIN_ID: {}\nCLIENT_NAME: {}\nMESSAGE: {}'#needs to end with
 
 
 #
-#send_msg(JOIN_MSG.format('chat1','123.456.789.000','123','client1'))
-#send_msg(LEAVE_MSG.format('1', '101', 'client3'))
+#
+send_msg(JOIN_MSG.format('chat1','123.456.789.000','123','client1'))
+#
+send_msg(LEAVE_MSG.format('1', '101', 'client1'))
 #send_msg('KILL_SERVICE')
 
 
@@ -73,7 +77,7 @@ sock.close()
 
 
 sockMSG = create_client_socket()
-msg = 'Hello myMessage'
+msg = 'Hello XXXXX'
 sockMSG .sendall(msg.encode('utf-8'))
 print ('Received "%s"' % sockMSG .recv(4096))
 
