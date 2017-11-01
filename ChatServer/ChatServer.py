@@ -46,8 +46,8 @@ class Server(object):
     RECV_BUFFER = 4096  # Advisable to keep it as an exponent of 2
     
     def __init__(self):       
-        self.server="10.6.43.95"#localhost"#"10.6.43.95" #"localhost"
-        self.port = 60000
+        self.server='localhost' #"#"10.6.43.95" #"localhost"
+        self.port = 5000
         self.user_name_dict = {}
         self.myStudentId = 13312410
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -251,7 +251,7 @@ class Server(object):
                         data = data.splitlines()
                         #First item of the message should be the action:
                         action = self.getLeft(data[0])
-                        print (action)
+                        #print (action)
                         if action == 'Hell': #all actions have a ":", except the "hello" action
                             returnmsg = self.getRight(data[0])
                             self.send_data_to(sock, self.HELLO_MSG.format(returnmsg, self.server, self.port, self.myStudentId).encode('utf-8'))
