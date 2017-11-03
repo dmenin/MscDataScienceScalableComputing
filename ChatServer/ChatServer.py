@@ -45,8 +45,11 @@ class Server(object):
     CONNECTION_LIST = []
     RECV_BUFFER = 4096  # Advisable to keep it as an exponent of 2
     
-    def __init__(self):       
-        self.server='10.62.0.17'
+    def __init__(self):
+        if socket.gethostname() == 'DESKTOP-MH1VBMC':
+            self.server = 'localhost'
+        else:
+            self.server='10.62.0.17' #Nebula Instance
         self.port = 5000
         self.user_name_dict = {}
         self.myStudentId = 13312410
@@ -219,18 +222,17 @@ class Server(object):
         while 1:
             # Get the list sockets which are ready to be read through select
             read_sockets, write_sockets, error_sockets = select.select(self.CONNECTION_LIST, [], [])
-            print ("XXXXX")
-#            time.sleep(1)
-#            print ('Read:')
-#            for c in read_sockets:
-#                print ('    ', c)
-#            print ('Write:')
-#            for c in write_sockets:
-#                print ('    ', c)
-#            print ('Error:')
-#            for c in error_sockets:
-#                print ('    ', c)
-#            print('-------------------------\n')
+            time.sleep(1)
+            print ('Read:')
+            for c in read_sockets:
+                print ('    ', c)
+            print ('Write:')
+            for c in write_sockets:
+                print ('    ', c)
+            print ('Error:')
+            for c in error_sockets:
+                print ('    ', c)
+            print('-------------------------\n')
             for sock in read_sockets:
                 if sock == self.server_socket: #New connection
                     print ('New Connection')
@@ -239,6 +241,7 @@ class Server(object):
                     try:
                         data = sock.recv(self.RECV_BUFFER)
                         data = data.decode('utf-8')
+                        print (data)
                         if data:
                             if data == 'KILL_SERVICE':
                                 os._exit(1)
