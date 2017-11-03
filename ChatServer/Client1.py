@@ -36,7 +36,7 @@ CHAT_MSG='CHAT: {}\nJOIN_ID: {}\nCLIENT_NAME: {}\nMESSAGE: {}'#needs to end with
 #send_msg(JOIN_MSG.format('chat1','123.456.789.000','123','client1'))
 ##
 #send_msg(LEAVE_MSG.format('1', '101', 'client1'))
-##send_msg('KILL_SERVICE')
+##send_msg('KILL_SERVICE\n')
 #
 
 #1)Client 1 joins chat1
@@ -74,16 +74,17 @@ CHAT_MSG='CHAT: {}\nJOIN_ID: {}\nCLIENT_NAME: {}\nMESSAGE: {}'#needs to end with
 #
 #sock.close()
 # 
-
+#send_msg('KILL_SERVICE\n')
 import socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_address = ('localhost' , 5000) #'localhost' 
 sock.connect(server_address)
 
 msg = 'HELO BASE_TEST\n'
-#msg='KILL_SERVICE'
-#JOIN_MSG='JOIN_CHATROOM: {}\r\nCLIENT_IP: {}\r\nPORT: {}\r\nCLIENT_NAME: {}\r\n'
-#msg = JOIN_MSG.format('chat1','123.456.789.000','123','client2')
+#msg='KILL_SERVICE\n'
+
+JOIN_MSG='JOIN_CHATROOM: {}\rCLIENT_IP: {}\rPORT: {}\rCLIENT_NAME: {}\r'
+msg = JOIN_MSG.format('chat1','123.456.789.000','123','client2')
 #print (msg)
 
 #msg='JOIN_CHATROOM: oloco\n'

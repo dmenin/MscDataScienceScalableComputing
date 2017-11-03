@@ -140,17 +140,13 @@ class Server(object):
         assert(self.getLeft(data[2]) == 'PORT')
         assert(self.getLeft(data[3]) == 'CLIENT_NAME')
 
-        cip = self.getRight(data[1])
-        cpo = self.getRight(data[2])
-        cn  = self.getRight(data[3])
-        
+        cn  = self.getRight(data[3])        
         if cn not in self.clients:
             #Create new client if it doesnt exist
             self.clients[cn] = self.CurrentClientID
             self.CurrentClientID +=1
         
         #Check if client is already on the chatroom??
-        
         chatname = self.getRight(data[0])
         if chatname not in self.chatrooms:
             #Creating a New ChatRoom
@@ -162,8 +158,21 @@ class Server(object):
         
         
         c.AddClient(cn, self.clients[cn], socket)
-        return self.JOINED_MSG.format(chatname, self.server, self.port, 
+        result = self.JOINED_MSG.format(chatname, self.server, self.port, 
                                       self.chatrooms[chatname].ID, self.clients[cn])
+
+        print('Returning:', result)
+        self.send_data_to(socket, result.encode('utf-8'))
+        self.send_clientJoinedMsg(chatname, cn)
+
+    def send_clientJoinedMsg(self, roomname, clientname):
+        print ('Telling everyone on room {} that client {} joined'.format(roomname, clientname))
+        sockets = self.chatrooms[roomname].GetSockets()
+        msg = 'Client {} has joined this chatroom.'.format(clientname)
+        for s in sockets:
+            #print ('    Sending data to:',s)
+            self.send_data_to(s, msg.encode('utf-8'))
+
 
     #RECEIVED MESSAGE:
     #LEAVE_CHATROOM: [ROOM_REF]
@@ -265,13 +274,12 @@ class Server(object):
                             elif action == 'JOIN_CHATROOM':
                                 print('Join Chatroom request')
                                 result = self.join_chat(data, sock)
-                                print('Returning:', result)
-                                self.send_data_to(sock, result.encode('utf-8'))
+                                
                             elif action == 'LEAVE_CHATROOM':
                                 print('Leave Chatroom request')
                                 result = self.leave_chat(data)
                                 print('Returning:', result)
-                                self.send_data_to(sock, result.encode('utf-8'))
+                                #self.send_data_to(sock, result.encode('utf-8'))
                             elif action == 'CHAT':
                                 print('Chat Message')
                                 self.send_message(data)                        
