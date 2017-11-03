@@ -77,7 +77,7 @@ CHAT_MSG='CHAT: {}\nJOIN_ID: {}\nCLIENT_NAME: {}\nMESSAGE: {}'#needs to end with
 
 import socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_address = ('localhost', 5000) #'localhost' 
+server_address = ('10.6.43.95', 5000) #'localhost' 
 sock.connect(server_address)
 
 #msg = 'HELO its me\n'
