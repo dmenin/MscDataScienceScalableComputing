@@ -140,7 +140,10 @@ class Server(object):
         assert(self.getLeft(data[2]) == 'PORT')
         assert(self.getLeft(data[3]) == 'CLIENT_NAME')
 
-        cn = self.getRight(data[3])
+        cip = self.getRight(data[1])
+        cpo = self.getRight(data[2])
+        cn  = self.getRight(data[3])
+        
         if cn not in self.clients:
             #Create new client if it doesnt exist
             self.clients[cn] = self.CurrentClientID
@@ -159,7 +162,7 @@ class Server(object):
         
         
         c.AddClient(cn, self.clients[cn], socket)
-        return self.JOINED_MSG.format(chatname, self.server, self.port, 
+        return self.JOINED_MSG.format(chatname, cip, cpo, 
                                       self.chatrooms[chatname].ID, self.clients[cn])
 
     #RECEIVED MESSAGE:
@@ -245,6 +248,7 @@ class Server(object):
                         print ('Data:', data)
                         if data:
                             if data == 'KILL_SERVICE':
+                                print('Killing Chat Service')
                                 os._exit(1)
                             if data == 'CHATROOMS': #DEBUG
                                 self.ShowChatRooms()
@@ -253,6 +257,7 @@ class Server(object):
                             #First item of the message should be the action:
                             action = self.getLeft(data[0])
                             print ('Action:', action)
+                            
                             if action == 'HEL': #all actions have a ":", except the "hello" action
                                 print('Helo Sent')
                                 returnmsg = self.getRight(data[0])
