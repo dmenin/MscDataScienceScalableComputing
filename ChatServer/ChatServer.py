@@ -162,7 +162,7 @@ class Server(object):
         
         
         c.AddClient(cn, self.clients[cn], socket)
-        return self.JOINED_MSG.format(chatname, cip, cpo, 
+        return self.JOINED_MSG.format(chatname, self.server, self.port, 
                                       self.chatrooms[chatname].ID, self.clients[cn])
 
     #RECEIVED MESSAGE:
