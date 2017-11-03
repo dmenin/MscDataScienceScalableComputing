@@ -247,7 +247,7 @@ class Server(object):
                         data = data.decode('utf-8')
                         print ('Data:', data)
                         if data:
-                            if data == 'KILL_SERVICE':
+                            if data == 'KILL_SERVICE\n':
                                 print('Killing Chat Service')
                                 os._exit(1)
                             if data == 'CHATROOMS': #DEBUG
