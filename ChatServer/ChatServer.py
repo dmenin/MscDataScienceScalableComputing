@@ -242,7 +242,7 @@ class Server(object):
                     try:
                         data = sock.recv(self.RECV_BUFFER)
                         data = data.decode('utf-8')
-                        print (data)
+                        print ('Data:', data)
                         if data:
                             if data == 'KILL_SERVICE':
                                 os._exit(1)
@@ -252,7 +252,7 @@ class Server(object):
                             data = data.splitlines()
                             #First item of the message should be the action:
                             action = self.getLeft(data[0])
-                            print (action)
+                            print ('Action:', action)
                             if action == 'HEL': #all actions have a ":", except the "hello" action
                                 print('Helo Sent')
                                 returnmsg = self.getRight(data[0])
@@ -260,14 +260,16 @@ class Server(object):
                             elif action == 'JOIN_CHATROOM':
                                 print('Join Chatroom request')
                                 result = self.join_chat(data, sock)
+                                print('Returning:', result)
                                 self.send_data_to(sock, result.encode('utf-8'))
                             elif action == 'LEAVE_CHATROOM':
                                 print('Leave Chatroom request')
                                 result = self.leave_chat(data)
+                                print('Returning:', result)
                                 self.send_data_to(sock, result.encode('utf-8'))
                             elif action == 'CHAT':
                                 print('Chat Message')
-                                self.send_message(data)                            
+                                self.send_message(data)                        
 #                            if self.user_name_dict[sock].username is None:
 #                                self.set_client_user_name(data, sock)
 #                            else:

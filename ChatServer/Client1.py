@@ -88,9 +88,8 @@ msg = 'HELO BASE_TEST\n'
 
 #msg='JOIN_CHATROOM: oloco\n'
 sock.send(msg.encode('utf-8'))
-
-#print ('Received "%s"' % sock.recv(4096))
-#sock.close()
+print ('Received "%s"' % sock.recv(4096))
+    #sock.close()
 
 
  
