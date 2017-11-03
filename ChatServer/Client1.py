@@ -77,14 +77,14 @@ CHAT_MSG='CHAT: {}\nJOIN_ID: {}\nCLIENT_NAME: {}\nMESSAGE: {}'#needs to end with
 
 import socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_address = ('10.6.43.95', 5000) #'localhost' 
+server_address = ('localhost' , 5000) #'localhost' 
 sock.connect(server_address)
 
-#msg = 'HELO its me\n'
+msg = 'HELO BASE_TEST\n'
 #msg='KILL_SERVICE'
-JOIN_MSG='JOIN_CHATROOM: {}\r\nCLIENT_IP: {}\r\nPORT: {}\r\nCLIENT_NAME: {}\r\n'
-msg = JOIN_MSG.format('chat1','123.456.789.000','123','client2')
-print (msg)
+#JOIN_MSG='JOIN_CHATROOM: {}\r\nCLIENT_IP: {}\r\nPORT: {}\r\nCLIENT_NAME: {}\r\n'
+#msg = JOIN_MSG.format('chat1','123.456.789.000','123','client2')
+#print (msg)
 
 #msg='JOIN_CHATROOM: oloco\n'
 sock.send(msg.encode('utf-8'))

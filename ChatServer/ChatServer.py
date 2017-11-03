@@ -218,21 +218,22 @@ class Server(object):
     #getLeft(data[0])   
     #getRight(data[0])   
     def client_connect(self):
-        print ("Chat server started on port " + str(self.port))
+        print ("Chat server started on {}:{}".format(str(self.server),str(self.port)))
         while 1:
             # Get the list sockets which are ready to be read through select
             read_sockets, write_sockets, error_sockets = select.select(self.CONNECTION_LIST, [], [])
-            time.sleep(1)
-            print ('Read:')
-            for c in read_sockets:
-                print ('    ', c)
-            print ('Write:')
-            for c in write_sockets:
-                print ('    ', c)
-            print ('Error:')
-            for c in error_sockets:
-                print ('    ', c)
-            print('-------------------------\n')
+#            time.sleep(1)
+#            print ('Read:')
+#            for c in read_sockets:
+#                print ('    ', c)
+#                print (dir(c))
+#            print ('Write:')
+#            for c in write_sockets:
+#                print ('    ', c)
+#            print ('Error:')
+#            for c in error_sockets:
+#                print ('    ', c)
+#            print('-------------------------\n')
             for sock in read_sockets:
                 if sock == self.server_socket: #New connection
                     print ('New Connection')
@@ -251,8 +252,9 @@ class Server(object):
                             data = data.splitlines()
                             #First item of the message should be the action:
                             action = self.getLeft(data[0])
-                            #print (action)
-                            if action == 'Hell': #all actions have a ":", except the "hello" action
+                            print (action)
+                            if action == 'HEL': #all actions have a ":", except the "hello" action
+                                print('Helo Sent')
                                 returnmsg = self.getRight(data[0])
                                 self.send_data_to(sock, self.HELLO_MSG.format(returnmsg, self.server, self.port, self.myStudentId).encode('utf-8'))
                             elif action == 'JOIN_CHATROOM':
