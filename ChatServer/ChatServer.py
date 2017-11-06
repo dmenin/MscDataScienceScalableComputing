@@ -27,13 +27,6 @@ class ChatRoom:
         #print (self.name, self.ID, name, id)
         self.clients = [l for l in self.clients if l[0] != name]
     
-#    def GetSockets(self):
-#        listOfSockets = []
-#        for c in self.clients:
-#            listOfSockets.append(c[2])
-#        
-#        return listOfSockets
-    
     def SendToAllInTheRoom(self, msg, clientname=''):
         print('Brodcasting msg on room {}: {}'.format(self.name, msg))
         msg = "CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n".format(self.ID, clientname, msg)
@@ -41,12 +34,14 @@ class ChatRoom:
             print('    Sending to client {}'.format(c[0]))
             s = c[2]
             s.send(msg.encode('utf-8'))
-            #self.send_data_to(s, msg.encode('utf-8'))
 
-#    #need to refactor this - same method on the Server and Chat Classes
-#    def send_data_to(self, sock, message):
-#        print('Sending fron Chat Obj:', message)
-#        sock.send(message)
+    def SendToAllInTheRoom2(self, msg, clientname=''):
+        print('Brodcasting msg on room {}: {}'.format(self.name, msg))
+        for c in self.clients:
+            print('    Sending to client {}'.format(c[0]))
+            s = c[2]
+            s.send(msg.encode('utf-8'))
+
 
 
 class Server(object):
@@ -265,7 +260,7 @@ class Server(object):
             for c in room.clients:
                 if c[0] == cn and socket == c[2]:
                     print('    Client is in the room'.format(cn))
-                    room.SendToAllInTheRoom('{}  has left this chatroom.'.format(cn), cn)
+                    room.SendToAllInTheRoom2('{}  has left this chatroom.'.format(cn), cn)
                     room.RemoveClient(cn, 0)
                     break
 
