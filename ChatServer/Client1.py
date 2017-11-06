@@ -84,9 +84,19 @@ sock.connect(server_address)
 #msg='KILL_SERVICE\n'
 
 JOIN_MSG='JOIN_CHATROOM: {}\rCLIENT_IP: {}\rPORT: {}\rCLIENT_NAME: {}\r'
-msg = JOIN_MSG.format('chat1','123.456.789.000','123','client1')
+msg = JOIN_MSG.format('room1','123.456.789.000','123','client1')
 sock.send(msg.encode('utf-8'))
 print ('Received "%s"' % sock.recv(4096))
+
+
+
+
+JOIN_MSG='JOIN_CHATROOM: {}\rCLIENT_IP: {}\rPORT: {}\rCLIENT_NAME: {}\r'
+msg = JOIN_MSG.format('room2','123.456.789.000','123','client1')
+sock.send(msg.encode('utf-8'))
+print ('Received "%s"' % sock.recv(4096))
+
+
 
 
 LEAVE_MSG='LEAVE_CHATROOM: {}\nJOIN_ID: {}\nCLIENT_NAME: {}'

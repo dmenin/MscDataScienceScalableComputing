@@ -146,7 +146,6 @@ class Server(object):
     #ROOM_REF: [integer that uniquely identifies chat room on server]
     #JOIN_ID: [integer that uniquely identifies client joining]
     def join_chat(self, data, socket):
-        print (data)
         assert(self.getLeft(data[1]) == 'CLIENT_IP')
         assert(self.getLeft(data[2]) == 'PORT')
         assert(self.getLeft(data[3]) == 'CLIENT_NAME')
@@ -199,7 +198,6 @@ class Server(object):
     #LEFT_CHATROOM: [ROOM_REF]
     #JOIN_ID: [integer previously provided by server on join]
     def leave_chat(self, data, socket):
-        print (data)
         chatroomid = int(self.getRight(data[0]))        
         roomname = self.findRoomNameByID(chatroomid)
 
@@ -223,33 +221,33 @@ class Server(object):
         c.RemoveClient(client_name, join_id)
 
         
+    #Receive:
     #CHAT: [ROOM_REF]
     #JOIN_ID: [integer identifying client to server]
     #CLIENT_NAME: [string identifying client user]
     #MESSAGE: [string terminated with '\n\n']
-    #CHAT_MSG='CHAT: chat1\nJOIN_ID: 123\nCLIENT_NAME: Diego\nMESSAGE: Hi\n\n'
+    
+    #BroadCasts:
+    #CHAT: [ROOM_REF]
+    #CLIENT_NAME: [string identifying client user]
+    #MESSAGE: [string terminated with '\n\n']
     def send_message(self, data):
+        print (data)
         assert(self.getLeft(data[1]) == 'JOIN_ID')
         assert(self.getLeft(data[2]) == 'CLIENT_NAME')
         assert(self.getLeft(data[3]) == 'MESSAGE')
         
         chatroomid  = int(self.getRight(data[0])) 
-        join_id     = int(self.getRight(data[1]))
+        roomname = self.findRoomNameByID(chatroomid)
+        c = self.chatrooms[roomname]
+        #join_id     = int(self.getRight(data[1]))
         client_name = self.getRight(data[2])
         msg         = self.getRight(data[3])
         
-        roomname = self.findRoomNameByID(chatroomid)
-        sockets = self.chatrooms[roomname].GetSockets()
-        for s in sockets:
-            print ('Sending data to:',s)
-            self.send_data_to(s, msg.encode('utf-8'))
+        CHAT_MSG='CHAT: {}\nCLIENT_NAME: {}\nMESSAGE: {}'#message shoul come with \n\n
+        c.SendToAllInTheRoom(CHAT_MSG.format(chatroomid, client_name, msg), client_name)
     
-    
-          
-    #data = 'JOIN_CHATROOM: chat1\nCLIENT_IP: 123.456.789.000\nPORT: 123\nCLIENT_NAME: client1'     
-    #data = data.splitlines()   
-    #getLeft(data[0])   
-    #getRight(data[0])   
+
     def client_connect(self):
         print ("Chat server started on {}:{}".format(str(self.server),str(self.port)))
         while 1:
@@ -293,10 +291,10 @@ class Server(object):
                             self.send_data_to(sock, self.HELLO_MSG.format(returnmsg, self.server, self.port, self.myStudentId).encode('utf-8'))
                         elif action == 'JOIN_CHATROOM':
                             print('Join Chatroom request')
-                            result = self.join_chat(data, sock)
+                            self.join_chat(data, sock)
                         elif action == 'LEAVE_CHATROOM':
                             print('Leave Chatroom request')
-                            result = self.leave_chat(data, sock)
+                            self.leave_chat(data, sock)
                         elif action == 'CHAT':
                             print('Chat Message')
                             self.send_message(data)                        
