@@ -257,16 +257,17 @@ class Server(object):
         assert(self.getLeft(data[2]) == 'CLIENT_NAME')
         cn = self.getRight(data[2])
         
-        #loop troguh the rooms
-        for roomID, room in self.chatrooms.items():
-            print('Room:{}'.format(room.name))
-            #clients connected to the room; (name, id, socket)
-            for c in room.clients:
-                if c[0] == cn and socket == c[2]:
-                    print('    Client is in the room'.format(cn))
-                    room.SendToAllInTheRoom('{}  has left this chatroom.'.format(cn), cn)
-                    room.RemoveClient(cn, 0)
-                    break
+        self.broadcast_data(socket,'{}  has left this chatroom.'.format(cn) )
+#        #loop troguh the rooms
+#        for roomID, room in self.chatrooms.items():
+#            print('Room:{}'.format(room.name))
+#            #clients connected to the room; (name, id, socket)
+#            for c in room.clients:
+#                if c[0] == cn and socket == c[2]:
+#                    print('    Client is in the room'.format(cn))
+#                    room.SendToAllInTheRoom('{}  has left this chatroom.'.format(cn), cn)
+#                    room.RemoveClient(cn, 0)
+#                    break
 
     def client_connect(self):
         print ("Chat server started on {}:{}".format(str(self.server),str(self.port)))
