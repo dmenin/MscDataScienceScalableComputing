@@ -57,7 +57,7 @@ class Server(object):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.HELLO_MSG  = 'HELO {}\nIP:{}\nPort:{}\nStudentID:{}'
         self.JOINED_MSG = 'JOINED_CHATROOM: {}\nSERVER_IP: {}\nPORT: {}\nROOM_REF: {}\nJOIN_ID: {}\n'
-        self.LEFT_MSG   = 'LEFT_CHATROOM: {}\nJOIN_ID: {}'
+        self.LEFT_MSG   = 'LEFT_CHATROOM: {}\nJOIN_ID: {}\n'
         
 
         self.chatrooms = {}
