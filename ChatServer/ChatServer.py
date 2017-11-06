@@ -328,17 +328,11 @@ class Server(object):
                                 print('Remove Sock')
                                 self.CONNECTION_LIST.remove(sock)
                                 print('Done')
-                            
-
-#                            if self.user_name_dict[sock].username is None:
-#                                self.set_client_user_name(data, sock)
-#                            else:
-#                                self.broadcast_data(sock, "\r" + '<' + self.user_name_dict[sock].username + '> ' + data)
-                    except Exception as ex:
-                        print (ex)
-                        sock.close()
-                        self.CONNECTION_LIST.remove(sock)
-                        continue
+            except Exception as ex:
+                print (ex)
+                sock.close()
+                self.CONNECTION_LIST.remove(sock)
+                continue
 
         self.server_socket.close()
     
