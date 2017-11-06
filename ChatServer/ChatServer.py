@@ -35,12 +35,16 @@ class ChatRoom:
         return listOfSockets
     
     def SendToAllInTheRoom(self, msg, clientname=''):
-        #print ('Telling everyone on room {} - about client {}'.format(self.name, clientname))
-        sockets = self.GetSockets()
+        #sockets = self.GetSockets()
         
         msg = "CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n".format(self.ID, clientname, msg)
-        for s in sockets:
-            self.send_data_to(s, msg.encode('utf-8'))
+        #for s in sockets:
+        print('Brodcasting msg on room {}: {}'.format(self.name, msg))
+        for c in self.clients:
+            print('    Sending to client {}'.format(c[0]))
+            s = c[2]
+            s.send(msg.encode('utf-8'))
+            #self.send_data_to(s, msg.encode('utf-8'))
 
     #need to refactor this - same method on the Server and Chat Classes
     def send_data_to(self, sock, message):
