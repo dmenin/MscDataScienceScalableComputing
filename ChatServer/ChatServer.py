@@ -262,7 +262,7 @@ class Server(object):
             print('Room:{}'.format(room.name))
             #clients connected to the room; (name, id, socket)
             for c in room.clients:
-                if c[0] == cn:
+                if c[0] == cn and socket=c[2]:
                     print('    Client is in the room'.format(cn))
                     room.SendToAllInTheRoom('{}  has left this chatroom.'.format(cn), cn)
                     room.RemoveClient(cn, 0)

@@ -89,6 +89,21 @@ sock.send(msg.encode('utf-8'))
 print ('Received "%s"' % sock.recv(4096))
 
 
+JOIN_MSG='JOIN_CHATROOM: {}\rCLIENT_IP: {}\rPORT: {}\rCLIENT_NAME: {}\r'
+msg = JOIN_MSG.format('room2','123.456.789.000','123','client1')
+sock.send(msg.encode('utf-8'))
+print ('Received "%s"' % sock.recv(4096))
+
+
+
+msg='DISCONNECT: 0\nPORT: 0\nCLIENT_NAME: client1\n'
+sock.send(msg.encode('utf-8'))
+
+[]
+
+
+
+
 
 
 JOIN_MSG='JOIN_CHATROOM: {}\rCLIENT_IP: {}\rPORT: {}\rCLIENT_NAME: {}\r'
