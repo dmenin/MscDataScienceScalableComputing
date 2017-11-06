@@ -261,7 +261,7 @@ class Server(object):
                 if c[0] == cn:
                     msg = '{0} has left this chatroom.'.format(cn)
                     room.SendToAllInTheRoom(msg, cn)
-                    c.RemoveClient(cn, 0)
+                    room.RemoveClient(cn, 0)
                     break
 
     def client_connect(self):
