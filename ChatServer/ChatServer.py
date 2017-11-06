@@ -246,7 +246,30 @@ class Server(object):
         
         #CHAT_MSG='CHAT: {}\nCLIENT_NAME: {}\nMESSAGE: {}'#message shoul come with \n\n
         c.SendToAllInTheRoom(msg, client_name)
-    
+
+    #DISCONNECT: [IP address of client if UDP | 0 if TCP]
+    #PORT: [port number of client it UDP | 0 id TCP]
+    #CLIENT_NAME: [string handle to identify client user]
+    def disconnect(self, data, socket):
+        print (data)
+        assert(self.getLeft(data[1]) == 'PORT')
+        assert(self.getLeft(data[2]) == 'CLIENT_NAME')
+        cn = self.getLeft(data[2])
+        #loop troguh the rooms
+        for roomID, room in self.chatrooms.items():
+            for c in room.clients:#clients connected to the room; (name, id, socket)
+                if c.name == cn:
+                    msg = '{0} has left this chatroom.'.format(cn)
+                    c.SendToAllInTheRoom(msg, cn)
+                    break
+                    
+            
+            
+            
+        
+        
+        
+        
 
     def client_connect(self):
         print ("Chat server started on {}:{}".format(str(self.server),str(self.port)))
@@ -297,7 +320,10 @@ class Server(object):
                             self.leave_chat(data, sock)
                         elif action == 'CHAT':
                             print('Chat Message')
-                            self.send_message(data)                        
+                            self.send_message(data)   
+                        elif action == 'DISCONNECT':
+                            print('Disconect')
+                            self.disconnect(data, sock)
 #                            if self.user_name_dict[sock].username is None:
 #                                self.set_client_user_name(data, sock)
 #                            else:
