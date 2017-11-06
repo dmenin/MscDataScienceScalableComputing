@@ -319,7 +319,10 @@ class Server(object):
                             self.send_message(data)   
                         elif action == 'DISCONNECT':
                             print('Disconect')
-                            self.disconnect(data, sock)
+                            try:
+                                self.disconnect(data, sock)
+                            except Exception as ex:
+                                print (ex)
 #                            if self.user_name_dict[sock].username is None:
 #                                self.set_client_user_name(data, sock)
 #                            else:
