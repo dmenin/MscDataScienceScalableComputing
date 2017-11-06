@@ -27,29 +27,26 @@ class ChatRoom:
         #print (self.name, self.ID, name, id)
         self.clients = [l for l in self.clients if l[0] != name]
     
-    def GetSockets(self):
-        listOfSockets = []
-        for c in self.clients:
-            listOfSockets.append(c[2])
-        
-        return listOfSockets
+#    def GetSockets(self):
+#        listOfSockets = []
+#        for c in self.clients:
+#            listOfSockets.append(c[2])
+#        
+#        return listOfSockets
     
     def SendToAllInTheRoom(self, msg, clientname=''):
-        #sockets = self.GetSockets()
-        
-        msg = "CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n".format(self.ID, clientname, msg)
-        #for s in sockets:
         print('Brodcasting msg on room {}: {}'.format(self.name, msg))
+        msg = "CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n".format(self.ID, clientname, msg)
         for c in self.clients:
             print('    Sending to client {}'.format(c[0]))
             s = c[2]
             s.send(msg.encode('utf-8'))
             #self.send_data_to(s, msg.encode('utf-8'))
 
-    #need to refactor this - same method on the Server and Chat Classes
-    def send_data_to(self, sock, message):
-        print('Sending fron Chat Obj:', message)
-        sock.send(message)
+#    #need to refactor this - same method on the Server and Chat Classes
+#    def send_data_to(self, sock, message):
+#        print('Sending fron Chat Obj:', message)
+#        sock.send(message)
 
 
 class Server(object):
@@ -253,6 +250,8 @@ class Server(object):
     #PORT: [port number of client it UDP | 0 id TCP]
     #CLIENT_NAME: [string handle to identify client user]
     def disconnect(self, data, socket):
+        print ('\n\n')
+        print ('XXXXXXXXXXXXXXX')
         print (data)
         assert(self.getLeft(data[1]) == 'PORT')
         assert(self.getLeft(data[2]) == 'CLIENT_NAME')
@@ -260,13 +259,11 @@ class Server(object):
         
         #loop troguh the rooms
         for roomID, room in self.chatrooms.items():
-            print('    RoomId:{}, name:{}'.format(roomID, room.name))
-            for c in room.clients:#clients connected to the room; (name, id, socket)
+            print('Room:{}'.format(room.name))
+            #clients connected to the room; (name, id, socket)
+            for c in room.clients:
                 if c[0] == cn:
-#                    room.RemoveClient(cn, 0)
-#                    msg = '{0} has left this chatroom.'.format(cn)
-#                    room.SendToAllInTheRoom(msg, cn)
-
+                    print('    Client is in the room'.format(cn))
                     room.SendToAllInTheRoom('{}  has left this chatroom.'.format(cn), cn)
                     room.RemoveClient(cn, 0)
                     break
