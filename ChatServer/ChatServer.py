@@ -170,8 +170,10 @@ class Server(object):
         print ('Telling everyone on room {} that client {} joined'.format(roomname, clientname))
         sockets = self.chatrooms[roomname].GetSockets()
         msg = '{} has joined this chatroom.'.format(clientname)
+        
+        msg = "CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n".format(roomname, clientname, msg)
         for s in sockets:
-            #print ('    Sending data to:',s)
+            print ('    Sending data to:',s)
             self.send_data_to(s, msg.encode('utf-8'))
 
 
