@@ -215,12 +215,13 @@ class Server(object):
             return 'ERROR_CODE: 210\nERROR_DESCRIPTION: Client name and join ID do not match'
         
         c = self.chatrooms[roomname]
-        c.RemoveClient(client_name, join_id)
         #self.chatrooms[roomname].RemoveClient(client_name, join_id)
         
         result =  self.LEFT_MSG.format(chatroomid, join_id)
         self.send_data_to(socket, result.encode('utf-8'))
         c.SendToAllInTheRoom('{}  has left this chatroom.'.format(client_name), client_name)
+        c.RemoveClient(client_name, join_id)
+
         
     #CHAT: [ROOM_REF]
     #JOIN_ID: [integer identifying client to server]
