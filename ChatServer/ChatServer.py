@@ -33,11 +33,14 @@ class ChatRoom:
             listOfSockets.append(c[2])
         
         return listOfSockets
+    
+    def SendToAllInTheRoom(self, msg, clientname=''):
+        print ('Telling everyone on room {} - about client {}'.format(self.name, clientname))
+        sockets = self.GetSockets()
         
-#l = []
-#l.append((1, 'a'))        
-#l.append((2, 'b'))
-
+        msg = "CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n".format(self.ID, clientname, msg)
+        for s in sockets:
+            self.send_data_to(s, msg.encode('utf-8'))        
 
 
 class Server(object):
@@ -166,18 +169,20 @@ class Server(object):
                                       self.chatrooms[chatname].ID, self.clients[cn])
 
         self.send_data_to(socket, result.encode('utf-8'))
-        self.send_clientJoinedMsg(c, cn)
+        c.SendToAllInTheRoom('{} has joined this chatroom.'.format(cn), cn)
+        #self.send_clientJoinedMsg(c, cn)
 
-    def send_clientJoinedMsg(self, chatRoom, clientname):
-        roomId   = chatRoom.ID
-        roomName = chatRoom.name
-        print ('Telling everyone on room {} that client {} joined'.format(roomName, clientname))
-        sockets = self.chatrooms[roomName].GetSockets()
-        msg = '{} has joined this chatroom.'.format(clientname)
-        
-        msg = "CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n".format(roomId, clientname, msg)
-        for s in sockets:
-            self.send_data_to(s, msg.encode('utf-8'))
+
+#    def send_clientJoinedMsg(self, chatRoom, clientname):
+#        roomId   = chatRoom.ID
+#        roomName = chatRoom.name
+#        print ('Telling everyone on room {} that client {} joined'.format(roomName, clientname))
+#        sockets = self.chatrooms[roomName].GetSockets()
+#        msg = '{} has joined this chatroom.'.format(clientname)
+#        
+#        msg = "CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n".format(roomId, clientname, msg)
+#        for s in sockets:
+#            self.send_data_to(s, msg.encode('utf-8'))
 
 
     #RECEIVED MESSAGE:
@@ -198,17 +203,19 @@ class Server(object):
         
         assert(self.getLeft(data[1]) == 'JOIN_ID')
         assert(self.getLeft(data[2]) == 'CLIENT_NAME')
-        
         join_id = int(self.getRight(data[1]))
         client_name = self.getRight(data[2])
         
         if self.clients[client_name] != join_id:
             return 'ERROR_CODE: 210\nERROR_DESCRIPTION: Client name and join ID do not match'
         
-        self.chatrooms[roomname].RemoveClient(client_name, join_id)
+        c = self.chatrooms[roomname]
+        c.RemoveClient(client_name, join_id)
+        #self.chatrooms[roomname].RemoveClient(client_name, join_id)
         
         result =  self.LEFT_MSG.format(chatroomid, join_id)
-        self.send_data_to(socket, result.encode('utf-8'))   
+        self.send_data_to(socket, result.encode('utf-8'))
+        c.SendToAllInTheRoom('{} has joined this chatroom.'.format(client_name), client_name)
         
     #CHAT: [ROOM_REF]
     #JOIN_ID: [integer identifying client to server]
