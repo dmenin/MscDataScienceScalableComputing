@@ -40,7 +40,12 @@ class ChatRoom:
         
         msg = "CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n".format(self.ID, clientname, msg)
         for s in sockets:
-            self.send_data_to(s, msg.encode('utf-8'))        
+            self.send_data_to(s, msg.encode('utf-8'))
+
+    #need to refactor this - same method on the Server and Chat Classes
+    def send_data_to(self, sock, message):
+        print('Sending fron Chat Obj:', message)
+        sock.send(message)
 
 
 class Server(object):
