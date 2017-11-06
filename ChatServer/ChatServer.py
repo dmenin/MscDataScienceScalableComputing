@@ -35,7 +35,7 @@ class ChatRoom:
         return listOfSockets
     
     def SendToAllInTheRoom(self, msg, clientname=''):
-        print ('Telling everyone on room {} - about client {}'.format(self.name, clientname))
+        #print ('Telling everyone on room {} - about client {}'.format(self.name, clientname))
         sockets = self.GetSockets()
         
         msg = "CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n".format(self.ID, clientname, msg)
@@ -275,7 +275,6 @@ class Server(object):
                     #try:
                     data = sock.recv(self.RECV_BUFFER)
                     data = data.decode('utf-8')
-                    print ('Data:', data)
                     if data:
                         if data == 'KILL_SERVICE\n':
                             print('Killing Chat Service')
@@ -286,7 +285,7 @@ class Server(object):
                         data = data.splitlines()
                         #First item of the message should be the action:
                         action = self.getLeft(data[0])
-                        print ('Action:', action)
+                        #print ('Action:', action)
                         
                         if action == 'HEL': #all actions have a ":", except the "hello" action
                             print('Helo Sent')
