@@ -240,11 +240,9 @@ class Server(object):
         chatroomid  = int(self.getRight(data[0])) 
         roomname = self.findRoomNameByID(chatroomid)
         c = self.chatrooms[roomname]
-        #join_id     = int(self.getRight(data[1]))
         client_name = self.getRight(data[2])
-        msg         = self.getRight(data[3])
-        
-        #CHAT_MSG='CHAT: {}\nCLIENT_NAME: {}\nMESSAGE: {}'#message shoul come with \n\n
+        msg         = self.getRight(data[3])        
+
         c.SendToAllInTheRoom(msg, client_name)
 
     #DISCONNECT: [IP address of client if UDP | 0 if TCP]
@@ -263,15 +261,8 @@ class Server(object):
                 if c[0] == cn:
                     msg = '{0} has left this chatroom.'.format(cn)
                     room.SendToAllInTheRoom(msg, cn)
+                    c.RemoveClient(cn, 0)
                     break
-                    
-            
-            
-            
-        
-        
-        
-        
 
     def client_connect(self):
         print ("Chat server started on {}:{}".format(str(self.server),str(self.port)))
