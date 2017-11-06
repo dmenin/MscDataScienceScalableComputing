@@ -254,7 +254,7 @@ class Server(object):
         print (data)
         assert(self.getLeft(data[1]) == 'PORT')
         assert(self.getLeft(data[2]) == 'CLIENT_NAME')
-        cn = self.getLeft(data[2])
+        cn = self.getRight(data[2])
         
         #loop troguh the rooms
         for roomID, room in self.chatrooms.items():
