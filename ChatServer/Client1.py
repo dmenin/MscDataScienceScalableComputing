@@ -92,7 +92,7 @@ print ('Received "%s"' % sock.recv(4096))
 LEAVE_MSG='LEAVE_CHATROOM: {}\nJOIN_ID: {}\nCLIENT_NAME: {}'
 msg = LEAVE_MSG.format('1','100','client1')
 sock.send(msg.encode('utf-8'))
-print ('Received "%s"' % sock.recv(4096))
+    print ('Received "%s"' % sock.recv(4096))
  
  
  

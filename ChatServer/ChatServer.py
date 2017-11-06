@@ -188,7 +188,7 @@ class Server(object):
     #RETURNS:
     #LEFT_CHATROOM: [ROOM_REF]
     #JOIN_ID: [integer previously provided by server on join]
-    def leave_chat(self, data):
+    def leave_chat(self, data, socket):
         print (data)
         chatroomid = int(self.getRight(data[0]))        
         roomname = self.findRoomNameByID(chatroomid)
@@ -284,7 +284,7 @@ class Server(object):
                             result = self.join_chat(data, sock)
                         elif action == 'LEAVE_CHATROOM':
                             print('Leave Chatroom request')
-                            result = self.leave_chat(data)
+                            result = self.leave_chat(data, sock)
                         elif action == 'CHAT':
                             print('Chat Message')
                             self.send_message(data)                        
