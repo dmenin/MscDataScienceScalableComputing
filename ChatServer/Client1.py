@@ -80,19 +80,19 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_address = ('localhost' , 5000) #'localhost' 
 sock.connect(server_address)
 
-msg = 'HELO BASE_TEST\n'
+#msg = 'HELO BASE_TEST\n'
 #msg='KILL_SERVICE\n'
 
 JOIN_MSG='JOIN_CHATROOM: {}\rCLIENT_IP: {}\rPORT: {}\rCLIENT_NAME: {}\r'
-msg = JOIN_MSG.format('chat1','123.456.789.000','123','client2')
-#print (msg)
-
-#msg='JOIN_CHATROOM: oloco\n'
+msg = JOIN_MSG.format('chat1','123.456.789.000','123','client1')
 sock.send(msg.encode('utf-8'))
 print ('Received "%s"' % sock.recv(4096))
-    #sock.close()
 
 
+LEAVE_MSG='LEAVE_CHATROOM: {}\nJOIN_ID: {}\nCLIENT_NAME: {}'
+msg = LEAVE_MSG.format('1','100','client1')
+sock.send(msg.encode('utf-8'))
+print ('Received "%s"' % sock.recv(4096))
  
  
  

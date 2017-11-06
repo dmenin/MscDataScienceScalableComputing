@@ -138,6 +138,7 @@ class Server(object):
     #ROOM_REF: [integer that uniquely identifies chat room on server]
     #JOIN_ID: [integer that uniquely identifies client joining]
     def join_chat(self, data, socket):
+        print (data)
         assert(self.getLeft(data[1]) == 'CLIENT_IP')
         assert(self.getLeft(data[2]) == 'PORT')
         assert(self.getLeft(data[3]) == 'CLIENT_NAME')
@@ -188,6 +189,7 @@ class Server(object):
     #LEFT_CHATROOM: [ROOM_REF]
     #JOIN_ID: [integer previously provided by server on join]
     def leave_chat(self, data):
+        print (data)
         chatroomid = int(self.getRight(data[0]))        
         roomname = self.findRoomNameByID(chatroomid)
 
@@ -205,8 +207,9 @@ class Server(object):
         
         self.chatrooms[roomname].RemoveClient(client_name, join_id)
         
-        return self.LEFT_MSG.format(chatroomid, join_id)
-      
+        result =  self.LEFT_MSG.format(chatroomid, join_id)
+        self.send_data_to(socket, result.encode('utf-8'))   
+        
     #CHAT: [ROOM_REF]
     #JOIN_ID: [integer identifying client to server]
     #CLIENT_NAME: [string identifying client user]
@@ -256,46 +259,44 @@ class Server(object):
                     print ('New Connection')
                     self.setup_connection()
                 else:
-                    try:
-                        data = sock.recv(self.RECV_BUFFER)
-                        data = data.decode('utf-8')
-                        print ('Data:', data)
-                        if data:
-                            if data == 'KILL_SERVICE\n':
-                                print('Killing Chat Service')
-                                os._exit(1)
-                            if data == 'CHATROOMS': #DEBUG
-                                self.ShowChatRooms()
-        
-                            data = data.splitlines()
-                            #First item of the message should be the action:
-                            action = self.getLeft(data[0])
-                            print ('Action:', action)
-                            
-                            if action == 'HEL': #all actions have a ":", except the "hello" action
-                                print('Helo Sent')
-                                returnmsg = self.getRight(data[0])
-                                self.send_data_to(sock, self.HELLO_MSG.format(returnmsg, self.server, self.port, self.myStudentId).encode('utf-8'))
-                            elif action == 'JOIN_CHATROOM':
-                                print('Join Chatroom request')
-                                result = self.join_chat(data, sock)
-                                
-                            elif action == 'LEAVE_CHATROOM':
-                                print('Leave Chatroom request')
-                                result = self.leave_chat(data)
-                                #self.send_data_to(sock, result.encode('utf-8'))
-                            elif action == 'CHAT':
-                                print('Chat Message')
-                                self.send_message(data)                        
+                    #try:
+                    data = sock.recv(self.RECV_BUFFER)
+                    data = data.decode('utf-8')
+                    print ('Data:', data)
+                    if data:
+                        if data == 'KILL_SERVICE\n':
+                            print('Killing Chat Service')
+                            os._exit(1)
+                        if data == 'CHATROOMS': #DEBUG
+                            self.ShowChatRooms()
+    
+                        data = data.splitlines()
+                        #First item of the message should be the action:
+                        action = self.getLeft(data[0])
+                        print ('Action:', action)
+                        
+                        if action == 'HEL': #all actions have a ":", except the "hello" action
+                            print('Helo Sent')
+                            returnmsg = self.getRight(data[0])
+                            self.send_data_to(sock, self.HELLO_MSG.format(returnmsg, self.server, self.port, self.myStudentId).encode('utf-8'))
+                        elif action == 'JOIN_CHATROOM':
+                            print('Join Chatroom request')
+                            result = self.join_chat(data, sock)
+                        elif action == 'LEAVE_CHATROOM':
+                            print('Leave Chatroom request')
+                            result = self.leave_chat(data)
+                        elif action == 'CHAT':
+                            print('Chat Message')
+                            self.send_message(data)                        
 #                            if self.user_name_dict[sock].username is None:
 #                                self.set_client_user_name(data, sock)
 #                            else:
 #                                self.broadcast_data(sock, "\r" + '<' + self.user_name_dict[sock].username + '> ' + data)
-                    except Exception as ex:
-                        print (ex)
-                        sock.close()
-                        self.CONNECTION_LIST.remove(sock)
-                        continue
+#                    except Exception as ex:
+#                        print (ex)
+#                        sock.close()
+#                        self.CONNECTION_LIST.remove(sock)
+#                        continue
 
         self.server_socket.close()
     
