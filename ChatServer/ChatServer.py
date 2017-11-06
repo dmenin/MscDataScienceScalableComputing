@@ -262,7 +262,7 @@ class Server(object):
             print('Room:{}'.format(room.name))
             #clients connected to the room; (name, id, socket)
             for c in room.clients:
-                if c[0] == cn and socket=c[2]:
+                if c[0] == cn and socket == c[2]:
                     print('    Client is in the room'.format(cn))
                     room.SendToAllInTheRoom('{}  has left this chatroom.'.format(cn), cn)
                     room.RemoveClient(cn, 0)
@@ -277,7 +277,6 @@ class Server(object):
 #            print ('Read:')
 #            for c in read_sockets:
 #                print ('    ', c)
-#                print (dir(c))
 #            print ('Write:')
 #            for c in write_sockets:
 #                print ('    ', c)
@@ -285,6 +284,7 @@ class Server(object):
 #            for c in error_sockets:
 #                print ('    ', c)
 #            print('-------------------------\n')
+            print('len: {}'.format(len(read_sockets)))
             for sock in read_sockets:
                 if sock == self.server_socket: #New connection
                     print ('New Connection')
@@ -321,6 +321,8 @@ class Server(object):
                         elif action == 'DISCONNECT':
                             print('Disconect')
                             self.disconnect(data, sock)
+                            print('Close Sock')
+                            sock.close()
                             print('Remove Sock')
                             self.CONNECTION_LIST.remove(sock)
                             print('Done')
