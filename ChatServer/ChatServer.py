@@ -244,8 +244,8 @@ class Server(object):
         client_name = self.getRight(data[2])
         msg         = self.getRight(data[3])
         
-        CHAT_MSG='CHAT: {}\nCLIENT_NAME: {}\nMESSAGE: {}'#message shoul come with \n\n
-        c.SendToAllInTheRoom(CHAT_MSG.format(chatroomid, client_name, msg), client_name)
+        #CHAT_MSG='CHAT: {}\nCLIENT_NAME: {}\nMESSAGE: {}'#message shoul come with \n\n
+        c.SendToAllInTheRoom(msg, client_name)
     
 
     def client_connect(self):
