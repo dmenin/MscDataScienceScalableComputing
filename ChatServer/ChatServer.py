@@ -50,7 +50,7 @@ class Server(object):
             self.server = 'localhost'
         else:
             self.server='10.62.0.17' #Nebula Instance
-        self.server = '10.6.43.95' #TCD
+        #self.server = '10.6.43.95' #TCD
         self.port = 5000
         self.user_name_dict = {}
         self.myStudentId = 13312410
