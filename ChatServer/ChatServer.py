@@ -220,7 +220,7 @@ class Server(object):
         
         result =  self.LEFT_MSG.format(chatroomid, join_id)
         self.send_data_to(socket, result.encode('utf-8'))
-        c.SendToAllInTheRoom('{} has joined this chatroom.'.format(client_name), client_name)
+        c.SendToAllInTheRoom('{}  has left this chatroom.'.format(client_name), client_name)
         
     #CHAT: [ROOM_REF]
     #JOIN_ID: [integer identifying client to server]
