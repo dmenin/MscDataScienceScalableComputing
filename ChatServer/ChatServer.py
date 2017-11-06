@@ -259,9 +259,10 @@ class Server(object):
             print('    RoomId:{}, name:{}'.format(roomID, room.name))
             for c in room.clients:#clients connected to the room; (name, id, socket)
                 if c[0] == cn:
+                    room.RemoveClient(cn, 0)
                     msg = '{0} has left this chatroom.'.format(cn)
                     room.SendToAllInTheRoom(msg, cn)
-                    room.RemoveClient(cn, 0)
+
                     break
 
     def client_connect(self):
