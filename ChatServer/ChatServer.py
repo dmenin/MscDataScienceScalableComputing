@@ -255,9 +255,12 @@ class Server(object):
         assert(self.getLeft(data[1]) == 'PORT')
         assert(self.getLeft(data[2]) == 'CLIENT_NAME')
         cn = self.getLeft(data[2])
+        
         #loop troguh the rooms
         for roomID, room in self.chatrooms.items():
+            print('    RoomId:{}, name:{}'.format(roomID, room.name))
             for c in room.clients:#clients connected to the room; (name, id, socket)
+                print('        ', c)
                 if c[0] == cn:
                     msg = '{0} has left this chatroom.'.format(cn)
                     c.SendToAllInTheRoom(msg, cn)
