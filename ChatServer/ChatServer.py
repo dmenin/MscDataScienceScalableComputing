@@ -50,6 +50,7 @@ class Server(object):
             self.server = 'localhost'
         else:
             self.server='10.62.0.17' #Nebula Instance
+        self.server = '10.6.43.95' #TCD
         self.port = 5000
         self.user_name_dict = {}
         self.myStudentId = 13312410
@@ -168,7 +169,7 @@ class Server(object):
     def send_clientJoinedMsg(self, roomname, clientname):
         print ('Telling everyone on room {} that client {} joined'.format(roomname, clientname))
         sockets = self.chatrooms[roomname].GetSockets()
-        msg = 'Client {} has joined this chatroom.'.format(clientname)
+        msg = '{} has joined this chatroom.'.format(clientname)
         for s in sockets:
             #print ('    Sending data to:',s)
             self.send_data_to(s, msg.encode('utf-8'))
