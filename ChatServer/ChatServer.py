@@ -258,7 +258,7 @@ class Server(object):
         #loop troguh the rooms
         for roomID, room in self.chatrooms.items():
             for c in room.clients:#clients connected to the room; (name, id, socket)
-                if c.name == cn:
+                if c[0] == cn:
                     msg = '{0} has left this chatroom.'.format(cn)
                     c.SendToAllInTheRoom(msg, cn)
                     break
