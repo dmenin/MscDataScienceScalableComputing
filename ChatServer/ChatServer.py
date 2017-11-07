@@ -1,7 +1,5 @@
 import socket, select
 import os
-import time
-
 
 class ChatRoom:
 
@@ -36,15 +34,6 @@ class ChatRoom:
             s = c[2]
             s.send(msg.encode('utf-8'))
 
-    def SendToAllInTheRoom2(self, msg, clientname=''):
-        print('Brodcasting msg on room {}: {}'.format(self.name, msg))
-        for c in self.clients:
-            print('    Sending to client {}'.format(c[0]))
-            s = c[2]
-            s.send(msg.encode('utf-8'))
-
-
-
 class Server(object):
     # List to keep track of socket descriptors
     CONNECTION_LIST = []
@@ -55,7 +44,7 @@ class Server(object):
             self.server = 'localhost'
         else:
             self.server='10.62.0.17' #Nebula Instance
-        #self.server = '10.6.43.95' #TCD
+        #self.server = '10.6.43.95' #TCD - not working on TCDWifi
         self.port = 5000
         self.user_name_dict = {}
         self.myStudentId = 13312410
@@ -76,7 +65,6 @@ class Server(object):
         self.client_connect()
 
     def set_up_connections(self):
-        # this has no effect, why ?
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server_socket.bind((self.server, self.port))
         self.server_socket.listen(10)  # max simultaneous connections.
@@ -84,27 +72,9 @@ class Server(object):
         # Add server socket to the list of readable connections
         self.CONNECTION_LIST.append(self.server_socket)
 
-    # Function to broadcast chat messages to all connected clients
-    def broadcast_data(self, sock, message):
-        # Do not send the message to master socket and the client who has send us the message
-        for socket in self.CONNECTION_LIST:
-            if socket != self.server_socket and socket != sock:
-                # if not send_to_self and sock == socket: return
-                try:
-                    socket.send(message)
-                except:
-                    # broken socket connection may be, chat client pressed ctrl+c for example
-                    socket.close()
-                    self.CONNECTION_LIST.remove(socket)
-
     def send_data_to(self, sock, message):
-#        try:
         print('Sending:', message)
         sock.send(message)
-#        except:
-#            # broken socket connection may be, chat client pressed ctrl+c for example
-#            socket.close()
-#            self.CONNECTION_LIST.remove(sock)
 
     def getLeft(self, data):
         '''
@@ -171,19 +141,6 @@ class Server(object):
 
         self.send_data_to(socket, result.encode('utf-8'))
         c.SendToAllInTheRoom('{} has joined this chatroom.'.format(cn), cn)
-        #self.send_clientJoinedMsg(c, cn)
-
-
-#    def send_clientJoinedMsg(self, chatRoom, clientname):
-#        roomId   = chatRoom.ID
-#        roomName = chatRoom.name
-#        print ('Telling everyone on room {} that client {} joined'.format(roomName, clientname))
-#        sockets = self.chatrooms[roomName].GetSockets()
-#        msg = '{} has joined this chatroom.'.format(clientname)
-#        
-#        msg = "CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n".format(roomId, clientname, msg)
-#        for s in sockets:
-#            self.send_data_to(s, msg.encode('utf-8'))
 
 
     #RECEIVED MESSAGE:
@@ -246,14 +203,10 @@ class Server(object):
     #PORT: [port number of client it UDP | 0 id TCP]
     #CLIENT_NAME: [string handle to identify client user]
     def disconnect(self, data, socket):
-        print ('\n\n')
-        print ('XXXXXXXXXXXXXXX')
-        print (data)
         assert(self.getLeft(data[1]) == 'PORT')
         assert(self.getLeft(data[2]) == 'CLIENT_NAME')
         cn = self.getRight(data[2])
         
-#        self.broadcast_data(socket,'{}  has left this chatroom.'.format(cn) )
         #loop troguh the rooms
         for roomID, room in self.chatrooms.items():
             print('Room:{}'.format(room.name))
@@ -270,17 +223,6 @@ class Server(object):
         while 1:
             # Get the list sockets which are ready to be read through select
             read_sockets, write_sockets, error_sockets = select.select(self.CONNECTION_LIST, [], [])
-#            time.sleep(1)
-#            print ('Read:')
-#            for c in read_sockets:
-#                print ('    ', c)
-#            print ('Write:')
-#            for c in write_sockets:
-#                print ('    ', c)
-#            print ('Error:')
-#            for c in error_sockets:
-#                print ('    ', c)
-#            print('-------------------------\n')
             try:
                 print('len: {}'.format(len(read_sockets)))
                 for sock in read_sockets:
@@ -323,7 +265,6 @@ class Server(object):
                                 sock.close()
                                 print('Remove Sock')
                                 self.CONNECTION_LIST.remove(sock)
-                                print('Done')
             except Exception as ex:
                 print (ex)
                 sock.close()
