@@ -208,7 +208,7 @@ class Server(object):
         cn = self.getRight(data[2])
         
         #loop troguh the rooms
-        for roomID, room in self.chatrooms.items():
+        for roomID, room in sorted(self.chatrooms.items()):
             print('Room:{}'.format(room.name))
             #clients connected to the room; (name, id, socket)
             for c in room.clients:
