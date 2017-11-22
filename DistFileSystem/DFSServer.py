@@ -47,21 +47,6 @@ class FileHandler(BaseHandler):
         output_file.write(str(filecontent))
         self.finish("file" + fullFilePath + " is uploaded")
 
-        # required_risks = set([tuple(x) for x in required_risks])
-        # available_risks = set([tuple(x) for x in result])
-        # app_log.info("Available risks: %r" % available_risks)
-        # app_log.info("Requried risks: %r" % required_risks)
-        # missing = required_risks.difference(available_risks)
-        # app_log.info("Missing: %r" % missing)
-        # self.send_json_cors_headers()
-        # self.write(
-        #     json_encode(
-        #         {
-        #             "missing_risks": list(missing)
-        #         }
-        #     )
-        # )
-
 
 '''
 Creates all pre-requisites + retur WebApplication with Handlers
