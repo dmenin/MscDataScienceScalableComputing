@@ -1,5 +1,6 @@
 import socket, select
 import os
+import argparse
 
 class ChatRoom:
 
@@ -39,13 +40,23 @@ class Server(object):
     CONNECTION_LIST = []
     RECV_BUFFER = 4096  # Advisable to keep it as an exponent of 2
     
-    def __init__(self):
-        if socket.gethostname() == 'DESKTOP-MH1VBMC':
-            self.server = 'localhost'
+    def __init__(self, host = None, port = 5000):
+        
+
+        if host == None: 
+            #no parameter specified, either my local dev or deployed @ nebula
+            if socket.gethostname() == 'DESKTOP-MH1VBMC':
+                self.server = 'localhost'
+            else:
+                self.server='10.62.0.17' #Nebula Instance
+            #self.server = '10.6.43.95' #TCD - not working on TCDWifi
         else:
-            self.server='10.62.0.17' #Nebula Instance
-        #self.server = '10.6.43.95' #TCD - not working on TCDWifi
-        self.port = 5000
+            self.server = host
+        self.port = port
+        
+        print (self.server, self.port)
+        
+
         self.user_name_dict = {}
         self.myStudentId = 13312410
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -59,7 +70,6 @@ class Server(object):
 
         self.clients = {}
         self.CurrentClientID = 100
-
 
         self.set_up_connections()
         self.client_connect()
@@ -304,4 +314,9 @@ class Connection(object):
 
 
 if __name__ == "__main__":
-    server = Server()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--host',type=str,  default=None, help='Server''s IP.')
+    parser.add_argument('--port', type=int, default=5000, help='Server''s port .')
+    args, extra  = parser.parse_known_args()
+    
+    server = Server(args.host, args.port)
