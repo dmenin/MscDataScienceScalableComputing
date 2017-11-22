@@ -3,6 +3,7 @@ import logging
 from urllib.parse import unquote
 import tornado.ioloop
 import tornado.web
+import tornado.gen
 from tornado import options
 from tornado.escape import json_encode, json_decode
 
@@ -28,12 +29,38 @@ class BaseHandler(tornado.web.RequestHandler):
         self.finish()
 
 
-@tornado.web.stream_request_body
+#@tornado.web.stream_request_body
 class FileHandler(BaseHandler):
 
     def get(self):
         logging.info('FileHandler - GET')
         self.returnData(os.listdir(FileServerRoot))
+
+    def post(self, filename):
+        logging.info('FileHandler - POST')
+        #result = yield self.async()
+        #foo = json_decode(self.request.body)
+        filecontent = self.request.body
+
+        fullFilePath = os.path.join(FileServerRoot, filename)
+        output_file = open(fullFilePath, 'w')
+        output_file.write(str(filecontent))
+        self.finish("file" + fullFilePath + " is uploaded")
+
+        # required_risks = set([tuple(x) for x in required_risks])
+        # available_risks = set([tuple(x) for x in result])
+        # app_log.info("Available risks: %r" % available_risks)
+        # app_log.info("Requried risks: %r" % required_risks)
+        # missing = required_risks.difference(available_risks)
+        # app_log.info("Missing: %r" % missing)
+        # self.send_json_cors_headers()
+        # self.write(
+        #     json_encode(
+        #         {
+        #             "missing_risks": list(missing)
+        #         }
+        #     )
+        # )
 
 
 '''
@@ -45,7 +72,9 @@ def make_app(FileServerRoot):
         os.makedirs(FileServerRoot)
 
     return tornado.web.Application([
-        (r"/Files", FileHandler)
+         (r"/Files", FileHandler)
+        ,(r"/Files/(.*)/create", FileHandler)
+
         # ,
         # (r"/", MainHandler),
         # (r"/post", POSTHandler),
