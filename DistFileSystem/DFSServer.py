@@ -6,10 +6,14 @@ import tornado.web
 import tornado.gen
 from tornado import options
 from tornado.escape import json_encode, json_decode
+import shelve
 
 #GLOBAL VARIABLES
-#root file system folder folder. Will be created if doesnt exist. Inform ful path
+#Root file system folder folder. Will be created if doesnt exist. Inform ful path
 FileServerRoot = ''
+#Locking folder. Will contain on file "shelve" file that contains one file controling the locks
+LockingServerRoot = ''
+LockControl = None
 
 '''
 BaseHandler Class; Inherits from tornado.web.RequestHandler
@@ -51,10 +55,19 @@ class FileHandler(BaseHandler):
 '''
 Creates all pre-requisites + retur WebApplication with Handlers
 '''
-def make_app(FileServerRoot):
+def make_app(FileServerRoot, LockingServerRoot):
 
-    if not os.path.exists(FileServerRoot):
-        os.makedirs(FileServerRoot)
+    if FileServerRoot != None:
+        print ('Server is a file server')
+        if not os.path.exists(FileServerRoot):
+            os.makedirs(FileServerRoot)
+
+    if LockingServerRoot != None:
+        print ('Server is a locking server')
+        if not os.path.exists(LockingServerRoot):
+            os.makedirs(LockingServerRoot)
+            LockControl = shelve.open(os.path.join(LockingServerRoot, 'locks'))
+
 
     return tornado.web.Application([
          (r"/Files", FileHandler)
@@ -67,6 +80,10 @@ def make_app(FileServerRoot):
         # (r"/", Something)
     ])
 
+class LockingServer():
+
+    def __init__(self, LockingRoot):
+        pass
 
 if __name__ == "__main__":
     # Tornado configures logging.
@@ -74,9 +91,16 @@ if __name__ == "__main__":
 
     #Read from config File:
     port = 9998
-    FileServerRoot = 'c:/root'
 
-    app = make_app(FileServerRoot)
+    #Set these variables accordingly what role you want to server to perform:
+    FileServerRoot    = None
+    LockingServerRoot = None
+
+    FileServerRoot    = 'c:/DistFileSystem/FilesRoot'
+    LockingServerRoot = 'c:/DistFileSystem/LockRoot'
+
+    app = make_app(FileServerRoot, LockingServerRoot)
+
     app.listen(port)
     main_loop = tornado.ioloop.IOLoop.current()
 

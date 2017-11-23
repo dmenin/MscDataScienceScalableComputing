@@ -9,7 +9,7 @@ def create_client_socket():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     # Connect the socket to the port where the server is listening
-    server_address = ('localhost', 5000)#10.6.43.95 #'localhost' 
+    server_address = ('localhost', 1234)#10.6.43.95 #'localhost' 
     print ('Connecting to %s port %s' % server_address)
     sock.connect(server_address)
     return sock
@@ -77,7 +77,7 @@ CHAT_MSG='CHAT: {}\nJOIN_ID: {}\nCLIENT_NAME: {}\nMESSAGE: {}'#needs to end with
 #send_msg('KILL_SERVICE\n')
 import socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_address = ('localhost' , 5000) #'localhost' 
+server_address = ('localhost' , 1234) #'localhost' 
 sock.connect(server_address)
 
 #msg = 'HELO BASE_TEST\n'
