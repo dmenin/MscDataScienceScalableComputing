@@ -7,13 +7,15 @@ import tornado.gen
 from tornado import options
 from tornado.escape import json_encode, json_decode
 import shelve
+import datetime
+
 
 #GLOBAL VARIABLES
 #Root file system folder folder. Will be created if doesnt exist. Inform ful path
 FileServerRoot = ''
 #Locking folder. Will contain on file "shelve" file that contains one file controling the locks
 LockingServerRoot = ''
-LockControl = None
+
 
 '''
 BaseHandler Class; Inherits from tornado.web.RequestHandler
@@ -51,9 +53,32 @@ class FileHandler(BaseHandler):
         output_file.write(str(filecontent))
         self.finish("file" + fullFilePath + " is uploaded")
 
+'''
+Lock Class
+'''
+class Lock(object):
+
+    def __init__(self, file, who, time):
+        self.file = file
+        self.who = who
+
+        self.time = time
+
+class LockingServer(object):
+
+    def __init__(self, LockingServerRoot):
+
+        if not os.path.exists(LockingServerRoot):
+            os.makedirs(LockingServerRoot)
+
+        self.control = shelve.open(os.path.join(LockingServerRoot, 'locks'))
+
+    def RequestLock(self, file, who):
+        self.control[file] = Lock(file, who, datetime.datetime.now())
+
 
 '''
-Creates all pre-requisites + retur WebApplication with Handlers
+Creates all pre-requisites + return WebApplication with Handlers
 '''
 def make_app(FileServerRoot, LockingServerRoot):
 
@@ -64,9 +89,8 @@ def make_app(FileServerRoot, LockingServerRoot):
 
     if LockingServerRoot != None:
         print ('Server is a locking server')
-        if not os.path.exists(LockingServerRoot):
-            os.makedirs(LockingServerRoot)
-            LockControl = shelve.open(os.path.join(LockingServerRoot, 'locks'))
+        lServer = LockingServer(LockingServerRoot)
+        lServer.RequestLock('a','b')
 
 
     return tornado.web.Application([
@@ -80,7 +104,6 @@ def make_app(FileServerRoot, LockingServerRoot):
         # (r"/", Something)
     ])
 
-class LockingServer():
 
     def __init__(self, LockingRoot):
         pass
