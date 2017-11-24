@@ -8,6 +8,7 @@ from tornado import options
 from tornado.escape import json_encode, json_decode
 import shelve
 import datetime
+import shutil
 
 
 #GLOBAL VARIABLES
@@ -64,12 +65,28 @@ class Lock(object):
 
         self.time = time
 
-class LockingServer(object):
 
-    def __init__(self, LockingServerRoot):
+'''
+Base Class for the servers.
+Contains common methods like create base folder for example
+'''
 
-        if not os.path.exists(LockingServerRoot):
-            os.makedirs(LockingServerRoot)
+
+class BaseServer(object):
+
+    def __init__(self, ServerRoot, Force):
+        if os.path.exists(ServerRoot):  # if the folder exists
+            if Force:  # if we want to force a new start
+                shutil.rmtree(ServerRoot)  # delete folder
+                os.makedirs(ServerRoot)  # create folder
+        else:
+            os.makedirs(ServerRoot)
+
+
+class LockingServer(BaseServer):
+
+    def __init__(self, LockingServerRoot, Force):
+        BaseServer.__init__(self,LockingServerRoot, Force)
 
         self.control = shelve.open(os.path.join(LockingServerRoot, 'locks'))
 
@@ -77,21 +94,25 @@ class LockingServer(object):
         self.control[file] = Lock(file, who, datetime.datetime.now())
 
 
+class FileServer(BaseServer):
+
+    def __init__(self, fileServerRoot, force):
+        BaseServer.__init__(self, fileServerRoot, force)
+
 '''
 Creates all pre-requisites + return WebApplication with Handlers
+ForceResert = recreate folder
 '''
-def make_app(FileServerRoot, LockingServerRoot):
+def make_app(FileServerRoot, LockingServerRoot, ForceResert):
 
-    if FileServerRoot != None:
+    if FileServerRoot is not None:
         print ('Server is a file server')
-        if not os.path.exists(FileServerRoot):
-            os.makedirs(FileServerRoot)
+        fServer = FileServer(FileServerRoot, ForceResert)
 
-    if LockingServerRoot != None:
+    if LockingServerRoot is not None:
         print ('Server is a locking server')
-        lServer = LockingServer(LockingServerRoot)
+        lServer = LockingServer(LockingServerRoot, ForceResert)
         lServer.RequestLock('a','b')
-
 
     return tornado.web.Application([
          (r"/Files", FileHandler)
@@ -122,7 +143,7 @@ if __name__ == "__main__":
     FileServerRoot    = 'c:/DistFileSystem/FilesRoot'
     LockingServerRoot = 'c:/DistFileSystem/LockRoot'
 
-    app = make_app(FileServerRoot, LockingServerRoot)
+    app = make_app(FileServerRoot, LockingServerRoot, True)
 
     app.listen(port)
     main_loop = tornado.ioloop.IOLoop.current()
