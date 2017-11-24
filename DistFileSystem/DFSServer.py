@@ -9,14 +9,12 @@ from tornado.escape import json_encode, json_decode
 import shelve
 import datetime
 import shutil
+import time
 
 
 #GLOBAL VARIABLES
-#Root file system folder folder. Will be created if doesnt exist. Inform ful path
-FileServerRoot = ''
-#Locking folder. Will contain on file "shelve" file that contains one file controling the locks
-LockingServerRoot = ''
-
+fServer = None
+lServer = None
 
 '''
 BaseHandler Class; Inherits from tornado.web.RequestHandler
@@ -35,24 +33,87 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(json_encode(data))
         self.finish()
 
+# @gen.coroutine
+# def fetch_coroutine(url):
+#     http_client = AsyncHTTPClient()
+#     response = yield http_client.fetch(url)
+#     raise gen.Return(response.body)
 
-#@tornado.web.stream_request_body
+
+from tornado import gen
+from tornado.httpclient import AsyncHTTPClient
+from tornado.httpclient import HTTPRequest
+import json
+
 class FileHandler(BaseHandler):
+    #
+    # @gen.coroutine
+    # def get(url):
+    #     response = yield os.listdir(fServer.fileServerRoot)
+    #     raise gen.Return(response)
 
-    def get(self):
-        logging.info('FileHandler - GET')
-        self.returnData(os.listdir(FileServerRoot))
+    # @gen.coroutine
+    # def get(self):
+    #     time.sleep(10)
+    #     http_client = AsyncHTTPClient()
+    #     response = yield http_client.fetch('http://www.gogole.com')
+    #     raise gen.Return(response.body)
+    #
 
+    # def get(self):
+    #     logging.info('FileHandler - GET')
+    #     time.sleep(5)
+    #     self.returnData(os.listdir(fServer.fileServerRoot))
     def post(self, filename):
         logging.info('FileHandler - POST')
-        #result = yield self.async()
-        #foo = json_decode(self.request.body)
+        # result = yield self.async()
+        # foo = json_decode(self.request.body)
         filecontent = self.request.body
 
         fullFilePath = os.path.join(FileServerRoot, filename)
         output_file = open(fullFilePath, 'w')
         output_file.write(str(filecontent))
         self.finish("file" + fullFilePath + " is uploaded")
+
+    @gen.coroutine
+    def get(self):
+        url = "https://www.google.com"
+        time.sleep(10)
+        request = HTTPRequest(
+            url=url,
+            method="GET"
+        )
+        response = yield gen.Task(
+            AsyncHTTPClient().fetch, request)
+
+        self.returnData(os.listdir(fServer.fileServerRoot))
+        #raise gen.Return(response.body)
+
+class LockHandler(BaseHandler):
+
+    @gen.coroutine
+    def get(self):
+        url = "https://www.google.com"
+
+        request = HTTPRequest(
+            url=url,
+            method="GET"
+        )
+        response = yield gen.Task(
+            AsyncHTTPClient().fetch, request)
+
+        self.returnData(os.listdir(fServer.fileServerRoot))
+
+    # def get(self):
+    #     logging.info('LockHandler - GET')
+    #     self.returnData(lServer.listLocks())
+
+    # @gen.coroutine
+    # def get(self):
+    #     http_client = AsyncHTTPClient()
+    #     response = yield http_client.fetch('http://www.gogole.com')
+    #     raise gen.Return(response.body)
+
 
 '''
 Lock Class
@@ -85,19 +146,31 @@ class BaseServer(object):
 
 class LockingServer(BaseServer):
 
+    LockingServerRoot = None
+
     def __init__(self, LockingServerRoot, Force):
-        BaseServer.__init__(self,LockingServerRoot, Force)
+        BaseServer.__init__(self, LockingServerRoot, Force)
+        self. LockingServerRoot = LockingServerRoot
 
         self.control = shelve.open(os.path.join(LockingServerRoot, 'locks'))
 
     def RequestLock(self, file, who):
         self.control[file] = Lock(file, who, datetime.datetime.now())
 
+    def listLocks(self):
+        for key in self.control:
+            obj = self.control[key] # This is a Lock Object
+            print(obj.file, obj.who, obj.time)
+
 
 class FileServer(BaseServer):
 
+    fileServerRoot = None
+
     def __init__(self, fileServerRoot, force):
         BaseServer.__init__(self, fileServerRoot, force)
+        self.fileServerRoot = fileServerRoot
+
 
 '''
 Creates all pre-requisites + return WebApplication with Handlers
@@ -112,38 +185,38 @@ def make_app(FileServerRoot, LockingServerRoot, ForceResert):
     if LockingServerRoot is not None:
         print ('Server is a locking server')
         lServer = LockingServer(LockingServerRoot, ForceResert)
-        lServer.RequestLock('a','b')
+    else:
+        lServer = 'TODO : need to create object and read the existing locking file'
 
     return tornado.web.Application([
          (r"/Files", FileHandler)
         ,(r"/Files/(.*)/create", FileHandler)
 
+        ,(r"/Locks", LockHandler)
         # ,
         # (r"/", MainHandler),
         # (r"/post", POSTHandler),
         # (r"/(.*)", PUTHandler),
         # (r"/", Something)
-    ])
+    ]), fServer, lServer
 
 
-    def __init__(self, LockingRoot):
-        pass
 
 if __name__ == "__main__":
     # Tornado configures logging.
     options.parse_command_line()
 
-    #Read from config File:
+    # Read from config File:
     port = 9998
 
-    #Set these variables accordingly what role you want to server to perform:
+    # Set these variables accordingly what role you want to server to perform:
     FileServerRoot    = None
     LockingServerRoot = None
 
-    FileServerRoot    = 'c:/DistFileSystem/FilesRoot'
-    LockingServerRoot = 'c:/DistFileSystem/LockRoot'
+    FileServerRoot    = 'c:\\DistFileSystem\\FilesRoot'
+    LockingServerRoot = 'c:\\DistFileSystem\\LockRoot'
 
-    app = make_app(FileServerRoot, LockingServerRoot, True)
+    app, fServer, lServer = make_app(FileServerRoot, LockingServerRoot, True)
 
     app.listen(port)
     main_loop = tornado.ioloop.IOLoop.current()
