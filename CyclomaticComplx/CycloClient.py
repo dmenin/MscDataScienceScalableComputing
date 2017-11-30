@@ -7,9 +7,10 @@ from tornado import gen
 from tornado.escape import json_encode, json_decode
 import requests
 from random import *
-
-
+from radon.complexity import cc_rank, cc_visit
+import radon
 import CicloGit
+import numpy as np
 
 CycloServerAdress = "http://localhost:8888"
 #
@@ -54,13 +55,6 @@ application = tornado.web.Application([
     ])
 
 
-def calculateComplexity():
-    howLong = randint(1, 5)
-    time.sleep(howLong)
-    return howLong 
-
-
-
 class CycloClient(object):
     
     def __init__(self, repoUrl, fullpath, CycloServerAdress):
@@ -82,9 +76,22 @@ class CycloClient(object):
                 if '.py' in filename:
                     files.append(os.path.join(dirpath, filename))
         return files
-    
-        #cc_files = {file: None for file in self.files}
-    
+
+    def calculateComplexity(self, files):
+        def calc(f):
+            total = 0
+            try:
+                raw = open(f).read()
+                complx = radon.complexity.cc_visit(raw)
+                total = np.sum([c.complexity for c in complx])
+            except Exception as err:
+                #for the sake of simplicity we'll just ignore failures
+                pass
+            
+            return total 
+
+        return np.sum([calc(f) for f in files])
+
     
     def startWorking(self):
         
@@ -107,24 +114,15 @@ class CycloClient(object):
             #get a lit of py files to calculate complexity
             files = self.getFileList()
             
-            for f in files:
-                print (f)
-        
-            
             #CALCULATE THE COMPLEXITY
-            print ('Client {} - calculating task {}'.format(MyName, task))
-            c = calculateComplexity()
-            
-            
-            msg = '{} completed by client {}. Complexity:{}'.format(response.text, MyName, c)
+            #print ('Client {} - calculating task {}'.format(MyName, task))
+            c = self.calculateComplexity(files)
+        
+            result = {'commit': jobID, 'complexity': str(c)}
+            print('{} completed by client {}. Complexity:{}'.format(response.text, MyName, c))
             
             #post result to the server
-            response = requests.post('http://localhost:8888', data='{}'.format(msg))
-
-
-
-
-
+            response = requests.post('http://localhost:8888', json=result)
 
 
 

@@ -19,13 +19,3 @@ def cloneRepo(repoUrl, fullpath):
     assert not repo.bare
     
     return repo
-
-
-def getListOfFiles(self, fullpath):
-    files = []
-
-    for (dirpath, dirnames, filenames) in os.walk(fullpath):
-        for filename in filenames:
-            if '.py' in filename:
-                files.append(os.path.join(dirpath, filename))
-    return files

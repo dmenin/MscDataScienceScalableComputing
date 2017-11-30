@@ -5,7 +5,7 @@ from tornado import gen
 from tornado.escape import json_encode, json_decode
 import os
 from git import Repo
-
+import json
 import CicloGit
 
 
@@ -33,7 +33,6 @@ class CycloHandler(BaseHandler):
     def get(self): 
         print ('CycloHandler - get ')
 
-        
         if len(cc.commits) == 0:
             commit_number = 'Done'
         else:
@@ -44,11 +43,10 @@ class CycloHandler(BaseHandler):
 
 
     def post(self):
-        #logging.info('FileHandler - POST')
-        # result = yield self.async()
-        # foo = json_decode(self.request.body)
-        msg = self.request.body
-        print (msg)
+        #logging.info('Cyclo Server- POST')
+        msg = json_decode(self.request.body)
+        print (msg['commit'])
+        print (msg['complexity'])
         self.finish("file result received")
 
 
