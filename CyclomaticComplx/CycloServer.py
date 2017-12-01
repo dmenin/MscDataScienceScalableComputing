@@ -7,10 +7,7 @@ import os
 from git import Repo
 import json
 import CicloGit
-
-
-#this is the list of files to calculate the complexity
-things_to_do = ['task1', 'task2', 'task3', 'task4', 'task5']
+import pandas as pd
 
 class BaseHandler(tornado.web.RequestHandler):
 
@@ -25,6 +22,13 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(json_encode(data))
         self.finish()
 
+
+class ResultsHandler(BaseHandler):
+    @tornado.web.asynchronous
+    @gen.engine
+    def get(self):
+        print('ResultsHandler - get ')
+        self.returnData(cc.resultsDb)
 
 
 class CycloHandler(BaseHandler):
@@ -45,13 +49,20 @@ class CycloHandler(BaseHandler):
     def post(self):
         #logging.info('Cyclo Server- POST')
         msg = json_decode(self.request.body)
-        print (msg['commit'])
-        print (msg['complexity'])
+        #print (msg['commit'])
+        #print (msg['complexity'])
+
+        commit = msg['commit']
+        complexity = msg['complexity']
+        duration = msg['duration']
+
+        cc.resultsDb.append((commit, complexity, duration))
         self.finish("file result received")
 
 
 application = tornado.web.Application([
     (r"/", CycloHandler),
+    (r"/results", ResultsHandler)
     ])
 
 
@@ -65,7 +76,10 @@ class CycloComplx(object):
         self.repo = repo
         self.commits = commits
         #self.CycloServerAdress = CycloServerAdress
-        
+
+        self.resultsDb = []
+
+
         
 
 if __name__ == "__main__":

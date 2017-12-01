@@ -10,6 +10,7 @@ from random import *
 from radon.complexity import cc_rank, cc_visit
 import radon
 import CicloGit
+from datetime import datetime
 import numpy as np
 
 CycloServerAdress = "http://localhost:8888"
@@ -49,10 +50,10 @@ CycloServerAdress = "http://localhost:8888"
 #     #     print (msg)
 #     #     self.finish("file result received")
 #
-
-application = tornado.web.Application([
-    (r"/Start", CycloHandler),
-    ])
+#
+#application = tornado.web.Application([
+#    (r"/Start", CycloHandler),
+#    ])
 
 
 class CycloClient(object):
@@ -100,6 +101,7 @@ class CycloClient(object):
         #repo = client.repo
         
         while True:
+            startTime = datetime.now()
             #ask the server for a task
             response = requests.get(CycloServerAdress)
             jobID = response.json()
@@ -118,7 +120,9 @@ class CycloClient(object):
             #print ('Client {} - calculating task {}'.format(MyName, task))
             c = self.calculateComplexity(files)
         
-            result = {'commit': jobID, 'complexity': str(c)}
+            totalTime = (datetime.now() - startTime).seconds
+            
+            result = {'commit': jobID, 'complexity': str(c), 'duration': str(totalTime)}
             print('{} completed by client {}. Complexity:{}'.format(response.text, MyName, c))
             
             #post result to the server
@@ -126,8 +130,10 @@ class CycloClient(object):
 
 
 
-
-        
+#import sqlite3
+#db = sqlite3.connect(':memory:')
+#
+#db.tables
 #        
 #self.commits = list(self.)
 #        # self.cc_per_commit = {commit: None for commit in self.commits}
@@ -153,6 +159,4 @@ if __name__ == "__main__":
     fullpath = os.path.join(working_dir, MyName)
     
     client = CycloClient(repoUrl, fullpath, CycloServerAdress)
-    client.start()
-    
-    
+    client.startWorking()
