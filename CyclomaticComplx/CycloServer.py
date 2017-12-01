@@ -8,6 +8,8 @@ from git import Repo
 import json
 import CicloGit
 import pandas as pd
+import datetime
+
 
 class BaseHandler(tornado.web.RequestHandler):
 
@@ -30,16 +32,24 @@ class ResultsHandler(BaseHandler):
         print('ResultsHandler - get ')
         self.returnData(cc.resultsDb)
 
+class ReadyHandler(BaseHandler):
+    @tornado.web.asynchronous
+    @gen.engine
+    def get(self):
+        print('ReadyHandler - ready')
+        cc.serverReady = True
+        self.returnData('Ok Boss!')
+
 
 class CycloHandler(BaseHandler):
     @tornado.web.asynchronous
     @gen.engine
     def get(self): 
         print ('CycloHandler - get ')
-
-        if len(cc.commits) == 0:
+        if cc.serverReady == False:
+            commit_number = 'Server not Ready'
+        elif len(cc.commits) == 0:
             commit_number = 'Done'
-            
             if not cc.finished:
                 cc.finished = True
                 cc.FinishUp()
@@ -51,22 +61,22 @@ class CycloHandler(BaseHandler):
 
 
     def post(self):
-        #logging.info('Cyclo Server- POST')
+        print ('CycloHandler - post')
         msg = json_decode(self.request.body)
-        #print (msg['commit'])
-        #print (msg['complexity'])
 
         commit = msg['commit']
         complexity = msg['complexity']
         duration = msg['duration']
+        clientName = msg['clientName']
 
-        cc.resultsDb.append((commit, complexity, duration))
+        cc.resultsDb.append((commit, complexity, duration, clientName))
         self.finish("file result received")
 
 
 application = tornado.web.Application([
     (r"/", CycloHandler),
-    (r"/results", ResultsHandler)
+    (r"/results", ResultsHandler),
+    (r"/ready", ReadyHandler)
     ])
 
 
@@ -82,22 +92,25 @@ class CycloComplx(object):
         #just to make debuggin easier
         self.repo = repo
         self.commits = commits
-        #self.CycloServerAdress = CycloServerAdress
-
+        
+        #flag to prevent clients from start working one at a time
+        self.serverReady = False
+        
+        #storesthe results
         self.resultsDb = []
         
         #to avoid calling the finish class more thant once
         self.finished = False
     
     def FinishUp(self):
-        
-        df = pd.DataFrame(self.resultsDb, columns = ['Commit', 'Complexity', 'Time'])
+        df = pd.DataFrame(self.resultsDb, columns = ['Commit', 'Complexity', 'Time', 'ClientName'])
         df['nClients'] = self.nClients
-        df.to_csv('{}_{}Clients.csv'.format(self.repoName, self.nClients))
-
+        df.to_csv('Run{}_{}_{}Clients.csv'.format(self.runUnId, self.repoName, self.nClients))
         
 
 if __name__ == "__main__":
+    runUnId = datetime.datetime.now().microsecond
+    
     application.listen(8888)
 
     repoUrl = "https://github.com/dmenin/statsbasic"
@@ -106,8 +119,8 @@ if __name__ == "__main__":
     working_folder = 'CycloServer'
     fullpath = os.path.join(working_dir, working_folder)
 
-
     nClients = 1
     cc = CycloComplx(repoUrl, fullpath, nClients)
-
+    cc.runUnId = runUnId 
+    
     IOLoop.instance().start()

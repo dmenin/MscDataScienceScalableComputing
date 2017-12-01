@@ -10,8 +10,8 @@ from random import *
 from radon.complexity import cc_rank, cc_visit
 import radon
 import CicloGit
-from datetime import datetime
 import numpy as np
+import datetime
 
 CycloServerAdress = "http://localhost:8888"
 #
@@ -58,7 +58,7 @@ CycloServerAdress = "http://localhost:8888"
 
 class CycloClient(object):
     
-    def __init__(self, repoUrl, fullpath, CycloServerAdress):
+    def __init__(self, repoUrl, fullpath, CycloServerAdress, MyName):
         repo = CicloGit.cloneRepo(repoUrl, fullpath)
         commits = list(repo.iter_commits('master'))
         
@@ -68,6 +68,7 @@ class CycloClient(object):
         self.CycloServerAdress = CycloServerAdress
         self.repoUrl = repoUrl
         self.fullpath = fullpath
+        self.MyName = MyName
 
     def getFileList(self):
         files = []
@@ -101,13 +102,19 @@ class CycloClient(object):
         #repo = client.repo
         
         while True:
-            startTime = datetime.now()
+            startTime = datetime.datetime.now()
+            
             #ask the server for a task
             response = requests.get(CycloServerAdress)
             jobID = response.json()
             
-            if jobID == 'Done': #do something here
+            if jobID == 'Server not Ready':
+                print (jobID)
+                time.sleep(1)#wait one sec
+                continue
+            elif jobID == 'Done': 
                 break
+            
             
             #change the files on disk to the specific commit
             git = repo.git
@@ -120,9 +127,13 @@ class CycloClient(object):
             #print ('Client {} - calculating task {}'.format(MyName, task))
             c = self.calculateComplexity(files)
         
-            totalTime = (datetime.now() - startTime).seconds
+            totalTime = (datetime.datetime.now() - startTime).seconds
             
-            result = {'commit': jobID, 'complexity': str(c), 'duration': str(totalTime)}
+            result = {'commit': jobID, 
+                      'complexity': str(c), 
+                      'duration': str(totalTime),
+                      'clientName': self.MyName
+                     }
             print('{} completed by client {}. Complexity:{}'.format(response.text, MyName, c))
             
             #post result to the server
@@ -148,15 +159,13 @@ if __name__ == "__main__":
     
     repoUrl = "https://github.com/dmenin/statsbasic"
     CycloServerAdress = "http://localhost:8888"
-    working_dir = 'c:\\CycloComplx'
+    working_dir = 'c:\\CycloComplx'    
 
-    
-    #TODO: need to be better at this to avoid duplication
-    clientUnIdentifier = randint(1, 1000)
+    clientUnIdentifier = datetime.datetime.now().microsecond
     MyName = 'Client_{}'.format(clientUnIdentifier)
     print ('I am {}'.format(MyName))
 
     fullpath = os.path.join(working_dir, MyName)
     
-    client = CycloClient(repoUrl, fullpath, CycloServerAdress)
+    client = CycloClient(repoUrl, fullpath, CycloServerAdress, MyName)
     client.startWorking()
