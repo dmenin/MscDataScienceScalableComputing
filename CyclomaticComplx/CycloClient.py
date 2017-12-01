@@ -12,49 +12,7 @@ import radon
 import CicloGit
 import numpy as np
 import datetime
-
-CycloServerAdress = "http://localhost:8888"
-#
-# class BaseHandler(tornado.web.RequestHandler):
-#
-#     def send_json_cors_headers(self):
-#         self.set_header("Content-Type", "application/json;")
-#         self.set_header("Access-Control-Allow-Origin", "*")
-#         self.set_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-#         self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, PUT')
-#
-#     def returnData(self, data):
-#         self.send_json_cors_headers()
-#         self.write(json_encode(data))
-#         self.finish()
-#
-#
-# class CycloHandler(BaseHandler):
-#
-#     def get(self):
-#         while True:
-#             response = requests.get(CycloServerAdress)
-#             task = response.text
-#             if task == 'Done':
-#                 break
-#
-#             msg = response.text + 'done!'
-#
-#             response = requests.post('http://localhost:8888', data='{}'.format(msg))
-#
-#             # def post(self):
-#     #     #logging.info('FileHandler - POST')
-#     #     # result = yield self.async()
-#     #     # foo = json_decode(self.request.body)
-#     #     msg = self.request.body
-#     #     print (msg)
-#     #     self.finish("file result received")
-#
-#
-#application = tornado.web.Application([
-#    (r"/Start", CycloHandler),
-#    ])
-
+import configparser
 
 class CycloClient(object):
     
@@ -96,11 +54,8 @@ class CycloClient(object):
 
     
     def startWorking(self):
-        
-        #TO DO :check with the server if it is ready to avoind one client starting before the others
         repo = self.repo
-        #repo = client.repo
-        
+     
         while True:
             startTime = datetime.datetime.now()
             
@@ -139,27 +94,18 @@ class CycloClient(object):
             #post result to the server
             response = requests.post('http://localhost:8888', json=result)
 
-
-
-#import sqlite3
-#db = sqlite3.connect(':memory:')
-#
-#db.tables
-#        
-#self.commits = list(self.)
-#        # self.cc_per_commit = {commit: None for commit in self.commits}
-#        self.cc_per_commit = {}
-#
-#        print("Repository setup complete")    
-        
 if __name__ == "__main__":
-    #not using REST...yet(?)
-    #application.listen(8887)
-    #IOLoop.instance().start()
     
-    repoUrl = "https://github.com/dmenin/statsbasic"
-    CycloServerAdress = "http://localhost:8888"
-    working_dir = 'c:\\CycloComplx'    
+    configParser = configparser.RawConfigParser()   
+    conf = configParser.read('CycloConfig.txt')
+
+    repoUrl = configParser.get('CycloConfig', 'repoUrl')
+    CycloServerAdress = configParser.get('CycloConfig', 'CycloServerAdress')
+    working_dir = configParser.get('CycloConfig', 'working_dir')
+
+    #repoUrl = "https://github.com/dmenin/statsbasic"
+    #CycloServerAdress = "http://localhost:8888"
+    #working_dir = 'c:\\CycloComplx'
 
     clientUnIdentifier = datetime.datetime.now().microsecond
     MyName = 'Client_{}'.format(clientUnIdentifier)
@@ -169,3 +115,6 @@ if __name__ == "__main__":
     
     client = CycloClient(repoUrl, fullpath, CycloServerAdress, MyName)
     client.startWorking()
+    
+
+

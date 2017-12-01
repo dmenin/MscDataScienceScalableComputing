@@ -9,6 +9,7 @@ import json
 import CicloGit
 import pandas as pd
 import datetime
+import configparser
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -38,6 +39,7 @@ class ReadyHandler(BaseHandler):
     def get(self):
         print('ReadyHandler - ready')
         cc.serverReady = True
+        cc.StartWorkTime = datetime.datetime.now()
         self.returnData('Ok Boss!')
 
 
@@ -101,26 +103,36 @@ class CycloComplx(object):
         
         #to avoid calling the finish class more thant once
         self.finished = False
-    
+
+        self.StartWorkTime = None
+
+
     def FinishUp(self):
+        totalTime = (datetime.datetime.now() - cc.StartWorkTime).seconds
+        self.resultsDb.append(('Total',0,totalTime,'Server'))
+
         df = pd.DataFrame(self.resultsDb, columns = ['Commit', 'Complexity', 'Time', 'ClientName'])
         df['nClients'] = self.nClients
         df.to_csv('Run{}_{}_{}Clients.csv'.format(self.runUnId, self.repoName, self.nClients))
-        
+
+
 
 if __name__ == "__main__":
     runUnId = datetime.datetime.now().microsecond
-    
-    application.listen(8888)
+    configParser = configparser.RawConfigParser()   
+    conf = configParser.read('CycloConfig.txt')
 
-    repoUrl = "https://github.com/dmenin/statsbasic"
-    
-    working_dir = 'c:\\CycloComplx'
+    repoUrl = configParser.get('CycloConfig', 'repoUrl')
+    working_dir = configParser.get('CycloConfig', 'working_dir')
+    #repoUrl = "https://github.com/dmenin/statsbasic"    
     working_folder = 'CycloServer'
+
+    
     fullpath = os.path.join(working_dir, working_folder)
 
-    nClients = 1
+    nClients = 10
     cc = CycloComplx(repoUrl, fullpath, nClients)
     cc.runUnId = runUnId 
     
+    application.listen(8888)
     IOLoop.instance().start()

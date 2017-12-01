@@ -1,0 +1,5 @@
+[CycloConfig]
+repoUrl = https://github.com/DLTK/DLTK
+repoUrlEasy = https://github.com/dmenin/statsbasic
+CycloServerAdress = http://localhost:8888
+working_dir = c:\\CycloComplx
