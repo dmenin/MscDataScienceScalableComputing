@@ -102,13 +102,3 @@ or (Unix only):
 ```
 start.sh --host=<host ip> --port=<port>
 ```
-
-
-
-	```
-
- 
- 
-		
-1) Client want to open file1
-	1.1) ask the directory server where it is located
