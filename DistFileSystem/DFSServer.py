@@ -13,6 +13,8 @@ import shutil
 import time
 import string
 import random
+import pathlib
+import hashlib
 
 #GLOBAL VARIABLES
 fServer = None
@@ -35,38 +37,70 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(json_encode(data))
         self.finish()
 
-# from tornado import gen
-# from tornado.httpclient import AsyncHTTPClient
-# from tornado.httpclient import HTTPRequest
-# import json
+class FileInfoHandler(BaseHandler):
 
+    def get(self,  file):
+        logging.info('FileInfoHandler - GET')
+        md5 = fServer.getFileMd5(file)
+        print ('File {} - MD5: {}'.format(file, md5))
+        self.returnData(md5)
 
 class FileHandler(BaseHandler):
 
-    def get(self):
+    def get(self,  file=None):
         logging.info('FileHandler - GET')
-        self.returnData(os.listdir(fServer.fileServerRoot))
+        if file is None:
+            self.returnData(os.listdir(fServer.fileServerRoot))
+        else:
+            self.returnData(fServer.getFile(file))
 
     def post(self, filename):
-        logging.info('FileHandler - POST')
-        filecontent = self.request.body
-
-        result = fServer.createFile(filename, filecontent)
+        filecontent = str(self.request.body.decode('utf8')) #removes the 'b
+        if fServer.checkIfExists(filename):
+            logging.info('FileHandler - POST: Update File')
+            result = fServer.updateFile(filename, filecontent)
+        else:
+            logging.info('FileHandler - POST: Create File')
+            result = fServer.createFile(filename, filecontent)
 
         self.finish(result)
 
 
 class LockHandler(BaseHandler):
 
-    def get(self):
+    def get(self, file=None):
         logging.info('LockHandler - GET')
-        self.returnData(lServer.listLocks())
+        if file is None:
+            self.returnData(lServer.listLocks())
+        else:
+            self.returnData(lServer.getLock(file))
+
+    def post(self, filename):
+        msg = json_decode(self.request.body)
+        action = msg['action']
+
+        if action == 'RequestLock':
+            logging.info('LockHandler - POST: Request Lock')
+            who = msg['who']
+            result = lServer.RequestLock(filename, who)
+        elif action == 'ReleaseLock':
+            logging.info('LockHandler - POST: Release Lock')
+            result = lServer.ReleaseLock(filename)
+        else:
+            pass #Error
+
+        self.finish(result)
+
+
 
 class DirectoryHandler(BaseHandler):
 
-    def get(self):
+    def get(self, file=None):
         logging.info('DirectoryHandler - GET')
-        self.returnData(dServer.listDirectories())
+        if file is None:
+            self.returnData(dServer.listDirectories())
+        else:
+            self.returnData(dServer.getMapping(file))
 
     def post(self):
         logging.info('DirectoryHandler - POST')
@@ -116,14 +150,29 @@ class LockingServer(BaseServer):
 
         self.control = shelve.open(os.path.join(LockingServerRoot, 'locks'))
 
+    def getLock(self, file):
+        if file in self.control:
+            l = self.control[file]
+            return 'Lock on file {} granted to {} at {}'.format(l.file, l.who, l.time)
+        else:
+            return 'OK'
+
     def RequestLock(self, file, who):
-        self.control[file] = Lock(file, who, datetime.datetime.now())
+        n = datetime.datetime.now()
+        self.control[file] = Lock(file, who, n)
+        return 'Lock on file {} granted to {} at {}'.format(file, who, n)
+
+    def ReleaseLock(self, file):
+        del self.control[file]
+        return 'Released Lock on file {}'.format(file)
 
     def listLocks(self):
+        l = []
         for key in self.control:
             obj = self.control[key] # This is a Lock Object
-            print(obj.file, obj.who, obj.time)
+            l.append((str(obj.file), str(obj.who), str(obj.time)))
 
+        return l
 
 class FileServer(BaseServer):
 
@@ -133,8 +182,28 @@ class FileServer(BaseServer):
         BaseServer.__init__(self, fileServerRoot, force)
         self.fileServerRoot = fileServerRoot
 
+    def getFileMd5(self, fname):
+        fullFilePath = os.path.join(self.fileServerRoot, fname)
+        hash_md5 = hashlib.md5()
+        with open(fullFilePath, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        return hash_md5.hexdigest()
+
     def generateInternalFileName(self):
         return ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
+
+    def checkIfExists(self, filename):
+        p = pathlib.Path(os.path.join(self.fileServerRoot, filename))
+        return p.is_file()
+
+    def updateFile(self, filename, filecontent):
+        fullFilePath = os.path.join(self.fileServerRoot, filename)
+
+        with open(fullFilePath, 'w') as output_file:
+            output_file.write(str(filecontent))
+
+        return 'File {} updated'.format(filename)
 
 
     def createFile(self, filename, filecontent):
@@ -148,6 +217,10 @@ class FileServer(BaseServer):
             'internalFileName': internalFileName
         }
         return result
+
+    def getFile(self, file):
+        with open(os.path.join(self.fileServerRoot, file), 'r') as f:
+            return f.read()
 
 class DirectoryServer():
 
@@ -163,6 +236,7 @@ class DirectoryServer():
         return self.mapper[file]
 
     def listDirectories(self):
+        #prints on the console
         for key in self.mapper:
             obj = self.mapper[key] #This is a tuple of server\name
             print(key, obj[0], obj[1])
@@ -191,11 +265,16 @@ def make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, ForceResert):
 
     return tornado.web.Application([
          (r"/Files", FileHandler)
+        ,(r"/Files/(.*)/", FileHandler)
         ,(r"/Files/(.*)/create", FileHandler)
+        ,(r"/File/(.*)/getFileMd5", FileInfoHandler)
 
         ,(r"/Directory", DirectoryHandler)
+        ,(r"/Directory/(.*)/", DirectoryHandler)
 
         ,(r"/Locks", LockHandler)
+        ,(r"/Locks/(.*)/", LockHandler)
+        ,(r"/Locks/(.*)/lock", LockHandler)
 
         # (r"/", MainHandler),
         # (r"/post", POSTHandler),
