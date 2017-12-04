@@ -15,6 +15,8 @@ import string
 import random
 import pathlib
 import hashlib
+import argparse
+
 
 #GLOBAL VARIABLES
 fServer = None
@@ -255,8 +257,6 @@ def make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, ForceResert):
     if LockingServerRoot is not None:
         print ('Server is a locking server')
         lServer = LockingServer(LockingServerRoot, ForceResert)
-    else:
-        lServer = 'TODO : need to create object and read the existing locking file'
 
     if isDirectoryServer is not False:
         print ('Server is a Directory server')
@@ -276,15 +276,14 @@ def make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, ForceResert):
         ,(r"/Locks/(.*)/", LockHandler)
         ,(r"/Locks/(.*)/lock", LockHandler)
 
-        # (r"/", MainHandler),
-        # (r"/post", POSTHandler),
-        # (r"/(.*)", PUTHandler),
-        # (r"/", Something)
     ]), fServer, lServer, dServer
 
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    args, unparsed = parser.parse_known_args()
+
     # Tornado configures logging.
     options.parse_command_line()
 
