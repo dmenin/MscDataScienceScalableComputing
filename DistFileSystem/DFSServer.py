@@ -1,5 +1,6 @@
 import os
 import logging
+import random
 from urllib.parse import unquote
 import tornado.ioloop
 import tornado.web
@@ -10,7 +11,8 @@ import shelve
 import datetime
 import shutil
 import time
-
+import string
+import random
 
 #GLOBAL VARIABLES
 fServer = None
@@ -33,86 +35,46 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(json_encode(data))
         self.finish()
 
-# @gen.coroutine
-# def fetch_coroutine(url):
-#     http_client = AsyncHTTPClient()
-#     response = yield http_client.fetch(url)
-#     raise gen.Return(response.body)
+# from tornado import gen
+# from tornado.httpclient import AsyncHTTPClient
+# from tornado.httpclient import HTTPRequest
+# import json
 
-
-from tornado import gen
-from tornado.httpclient import AsyncHTTPClient
-from tornado.httpclient import HTTPRequest
-import json
 
 class FileHandler(BaseHandler):
-    #
-    # @gen.coroutine
-    # def get(url):
-    #     response = yield os.listdir(fServer.fileServerRoot)
-    #     raise gen.Return(response)
 
-    # @gen.coroutine
-    # def get(self):
-    #     time.sleep(10)
-    #     http_client = AsyncHTTPClient()
-    #     response = yield http_client.fetch('http://www.gogole.com')
-    #     raise gen.Return(response.body)
-    #
+    def get(self):
+        logging.info('FileHandler - GET')
+        self.returnData(os.listdir(fServer.fileServerRoot))
 
-    # def get(self):
-    #     logging.info('FileHandler - GET')
-    #     time.sleep(5)
-    #     self.returnData(os.listdir(fServer.fileServerRoot))
     def post(self, filename):
         logging.info('FileHandler - POST')
-        # result = yield self.async()
-        # foo = json_decode(self.request.body)
         filecontent = self.request.body
 
-        fullFilePath = os.path.join(FileServerRoot, filename)
-        output_file = open(fullFilePath, 'w')
-        output_file.write(str(filecontent))
-        self.finish("file" + fullFilePath + " is uploaded")
+        result = fServer.createFile(filename, filecontent)
 
-    @gen.coroutine
-    def get(self):
-        url = "https://www.google.com"
-        time.sleep(10)
-        request = HTTPRequest(
-            url=url,
-            method="GET"
-        )
-        response = yield gen.Task(
-            AsyncHTTPClient().fetch, request)
+        self.finish(result)
 
-        self.returnData(os.listdir(fServer.fileServerRoot))
-        #raise gen.Return(response.body)
 
 class LockHandler(BaseHandler):
 
-    @gen.coroutine
     def get(self):
-        url = "https://www.google.com"
+        logging.info('LockHandler - GET')
+        self.returnData(lServer.listLocks())
 
-        request = HTTPRequest(
-            url=url,
-            method="GET"
-        )
-        response = yield gen.Task(
-            AsyncHTTPClient().fetch, request)
+class DirectoryHandler(BaseHandler):
 
-        self.returnData(os.listdir(fServer.fileServerRoot))
+    def get(self):
+        logging.info('DirectoryHandler - GET')
+        self.returnData(dServer.listDirectories())
 
-    # def get(self):
-    #     logging.info('LockHandler - GET')
-    #     self.returnData(lServer.listLocks())
+    def post(self):
+        logging.info('DirectoryHandler - POST')
+        dircontent = json_decode(self.request.body)
+        print (dircontent )
+        dServer.addMapping(dircontent['filename'], dircontent['server'], dircontent['internalFileName'])
 
-    # @gen.coroutine
-    # def get(self):
-    #     http_client = AsyncHTTPClient()
-    #     response = yield http_client.fetch('http://www.gogole.com')
-    #     raise gen.Return(response.body)
+        self.finish('Mapping added')
 
 
 '''
@@ -171,12 +133,46 @@ class FileServer(BaseServer):
         BaseServer.__init__(self, fileServerRoot, force)
         self.fileServerRoot = fileServerRoot
 
+    def generateInternalFileName(self):
+        return ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
+
+
+    def createFile(self, filename, filecontent):
+        internalFileName = self.generateInternalFileName()
+
+        fullFilePath = os.path.join(FileServerRoot, internalFileName)
+        output_file = open(fullFilePath, 'w')
+        output_file.write(str(filecontent))
+        result = {
+            'filename' : filename,
+            'internalFileName': internalFileName
+        }
+        return result
+
+class DirectoryServer():
+
+    def __init__(self):
+        #contains the mapping between user readable file name and Server\file name on the server
+        self.mapper = {}
+
+    def addMapping(self, filename, server, internalFileName):
+        self.mapper[filename] = (server, internalFileName)
+
+    def getMapping(self, file):
+        #Todo: deal with missing values? - shouldnt ever happen, but just in case
+        return self.mapper[file]
+
+    def listDirectories(self):
+        for key in self.mapper:
+            obj = self.mapper[key] #This is a tuple of server\name
+            print(key, obj[0], obj[1])
+        return self.mapper
 
 '''
 Creates all pre-requisites + return WebApplication with Handlers
 ForceResert = recreate folder
 '''
-def make_app(FileServerRoot, LockingServerRoot, ForceResert):
+def make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, ForceResert):
 
     if FileServerRoot is not None:
         print ('Server is a file server')
@@ -188,17 +184,24 @@ def make_app(FileServerRoot, LockingServerRoot, ForceResert):
     else:
         lServer = 'TODO : need to create object and read the existing locking file'
 
+    if isDirectoryServer is not False:
+        print ('Server is a Directory server')
+        dServer = DirectoryServer()
+
+
     return tornado.web.Application([
          (r"/Files", FileHandler)
         ,(r"/Files/(.*)/create", FileHandler)
 
+        ,(r"/Directory", DirectoryHandler)
+
         ,(r"/Locks", LockHandler)
-        # ,
+
         # (r"/", MainHandler),
         # (r"/post", POSTHandler),
         # (r"/(.*)", PUTHandler),
         # (r"/", Something)
-    ]), fServer, lServer
+    ]), fServer, lServer, dServer
 
 
 
@@ -212,11 +215,13 @@ if __name__ == "__main__":
     # Set these variables accordingly what role you want to server to perform:
     FileServerRoot    = None
     LockingServerRoot = None
+    isDirectoryServer   = False
 
     FileServerRoot    = 'c:\\DistFileSystem\\FilesRoot'
     LockingServerRoot = 'c:\\DistFileSystem\\LockRoot'
+    isDirectoryServer   = True
 
-    app, fServer, lServer = make_app(FileServerRoot, LockingServerRoot, True)
+    app, fServer, lServer, dServer = make_app(FileServerRoot, LockingServerRoot, DirectoryServer, True)
 
     app.listen(port)
     main_loop = tornado.ioloop.IOLoop.current()

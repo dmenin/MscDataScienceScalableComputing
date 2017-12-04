@@ -22,20 +22,11 @@ things_to_do.pop(0)
 
 
 #Create a file
-response = requests.post('http://localhost:9998/Files/foobar/create', data="AAAAAA")
+response = requests.post('http://localhost:9998/Files/file1/create', data="This is File1")
+response.json()
+
+mapper = {}
+mapper[2] =2
 
 
-CycloServerAdress = "http://localhost:8888"
-while True:
-    response = requests.get(CycloServerAdress)
 
-    task = response.text
-    if task == '"Done"': #deal with the double quotes
-        break
-    msg = response.text + 'done!'
-    response = requests.post('http://localhost:8888', data='{}'.format(msg))
-    
-    
-    
-a='aaaa'
-a
