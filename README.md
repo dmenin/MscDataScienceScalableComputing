@@ -27,30 +27,34 @@ start.sh --host=<host ip> --port=<port>
 ```
 
 
-###<i class="icon-file"></i> Distributed File System:
+### <i class="icon-file"></i> Distributed File System:
 
 #### Assumptions:
 * Directory\File Server: store all files in a file server in a flat file system (i.e. each file server provides a single directory in effect), requiring the directory server to maintain mapping of full file names to server:filename mappings. 
  
 
-####Setting up:
+#### Setting up:
  
  1. Create file file1: Client calls File server to create file. File server returns with the file path created and the internal file name
 	
+	```
     response = requests.post('http://localhost:9998/Files/file1/create', data="This is File1")
     response.json()
     {'filename': 'file1',
      'fullFilePath': 'c:\\DistFileSystem\\FilesRoot\\xnxjr6c32z',
      'internalFileName': 'xnxjr6c32z'}
+	 ```
 
  
  1. Client adds the File server to the response and posts it back to the Directory Server. In the end, the file server is only aware of the file itself (with an internal name) and the directory server is awere of the mapping:
-
+	
+	```
     requests.get("http://localhost:9998/Files").text
     Out[412]: '["p4rfhgtgxj"]'
     
     requests.get("http://localhost:9998/Directory").text
     Out[413]: '{"file1": ["http://localhost:9998/", "p4rfhgtgxj"]}
+	```
 
  
  
