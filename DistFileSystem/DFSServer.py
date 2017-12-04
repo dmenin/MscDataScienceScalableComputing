@@ -249,7 +249,10 @@ Creates all pre-requisites + return WebApplication with Handlers
 ForceResert = recreate folder
 '''
 def make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, ForceResert):
-
+    fServer = None
+    lServer = None
+    dServer = None
+    
     if FileServerRoot is not None:
         print ('Server is a file server')
         fServer = FileServer(FileServerRoot, ForceResert)
@@ -281,15 +284,7 @@ def make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, ForceResert):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    args, unparsed = parser.parse_known_args()
-
-    # Tornado configures logging.
-    options.parse_command_line()
-
-    # Read from config File:
-    port = 9998
-
+    
     # Set these variables accordingly what role you want to server to perform:
     FileServerRoot    = None
     LockingServerRoot = None
@@ -298,8 +293,36 @@ if __name__ == "__main__":
     FileServerRoot    = 'c:\\DistFileSystem\\FilesRoot'
     LockingServerRoot = 'c:\\DistFileSystem\\LockRoot'
     isDirectoryServer   = True
+    port = 9998
 
-    app, fServer, lServer, dServer = make_app(FileServerRoot, LockingServerRoot, DirectoryServer, True)
+
+    ###########################################################################
+#    #Uncomment this to run from the command so each server can perform one role
+#    parser = argparse.ArgumentParser()
+#    parser.add_argument('--fport', default='0', help='File Server port.')
+#    parser.add_argument('--lport', default='0', help='Locking Server port.')
+#    parser.add_argument('--ds', default='False', help='is Directory Server.')
+#    
+#    args, unparsed = parser.parse_known_args()
+#    print (args)
+#    print (args.fport)
+#    if args.fport != 0:
+#        port = int(args.fport)
+#        LockingServerRoot = None
+#        isDirectoryServer   = False
+#    elif args.lport !=0:
+#        port = int(args.lport)
+#        FileServerRoot    = None
+#        isDirectoryServer   = False
+#    elif args.ds == 'True':
+#        FileServerRoot    = None
+#        LockingServerRoot = None
+    ##########################################################################
+
+    # Tornado configures logging.
+    #options.parse_command_line()
+
+    app, fServer, lServer, dServer = make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, True)
 
     app.listen(port)
     main_loop = tornado.ioloop.IOLoop.current()

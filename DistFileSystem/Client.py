@@ -71,7 +71,7 @@ requests.get("{}/Locks".format(locking_server)).json()
 #1) Client wants to open a file, edit and post it back to the server
 
 #Get list of files
-listOfFiles = requests.get("http://localhost:9998/Directory").json()
+listOfFiles = requests.get("{}/Directory".format(directory_server)).json()
 #choose one at random
 fileName = random.choice(list(listOfFiles.items()))[0]
 
@@ -118,8 +118,6 @@ def readLocalFileAndPostToServer(localFilePath, file_server, responseFileInterna
 readLocalFileAndPostToServer(localFilePath, file_server, responseFileInternalName)
 
 #adds to the local cache
-#It needs to be after the post to the server otherwise the server will have an earlier 
-#version than the client - rendering the caching obsolete
 localCaching.cache[responseFileInternalName] = localCaching.md5(localFilePath)
 
 #release the lock:
@@ -144,7 +142,7 @@ client2UnIdentifier = datetime.datetime.now().microsecond
 local_working_folderc2 = 'c:\\DistFileSystem\\Client{}'.format(client2UnIdentifier)
 os.makedirs(local_working_folderc2)
 
-
+# client 2 does not have file on cache
 localCaching2 = LocalCaching(local_working_folderc2)
 hasFile, msg = localCaching2.checkLocalCache(responseFileInternalName)
 if not hasFile:
