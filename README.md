@@ -77,7 +77,7 @@
 
 	
 
-#### <i class="icon-file"></i> Ciclo Complexity:
+#### <i class="icon-file"></i> Project 2 - Ciclo Complexity:
 
 * Assumptions:
 
@@ -91,7 +91,7 @@
 
 
 
-#### <i class="icon-file"></i> Chat Server:
+#### <i class="icon-file"></i> Project 1 - Chat Server:
 ```
 // Running:
 python ChatServer.py --host localhost --port 1234
