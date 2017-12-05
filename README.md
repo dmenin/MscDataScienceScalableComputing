@@ -16,7 +16,6 @@
     response = requests.post('http://localhost:9998/Files/file1/create', data="This is File1")
     response.json()
     {'filename': 'file1',
-     'fullFilePath': 'c:\\DistFileSystem\\FilesRoot\\xnxjr6c32z',
      'internalFileName': 'xnxjr6c32z'}
 	 ```
 

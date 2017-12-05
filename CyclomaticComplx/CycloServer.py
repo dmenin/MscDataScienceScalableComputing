@@ -130,7 +130,7 @@ if __name__ == "__main__":
     
     fullpath = os.path.join(working_dir, working_folder)
 
-    nClients = 10
+    nClients = 2
     cc = CycloComplx(repoUrl, fullpath, nClients)
     cc.runUnId = runUnId 
     

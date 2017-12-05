@@ -97,7 +97,10 @@ print(requests.post('{}/Locks/{}/'.format(locking_server, fileName), json=data).
 
 
 #Simulate another client asking for the lock - anything different than OK mean the lock cant be granted:
-print(requests.get('{}/Locks/{}/'.format(locking_server, fileName)).json())
+for i in range(3):
+    print(requests.get('{}/Locks/{}/'.format(locking_server, fileName)).json())
+    print ('Server is buzy, trying again..')
+    time.sleep(3)
 
 
 #asks the file server for the file, creates a local copy and change it

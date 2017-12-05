@@ -151,11 +151,14 @@ class LockingServer(BaseServer):
         self. LockingServerRoot = LockingServerRoot
 
         self.control = shelve.open(os.path.join(LockingServerRoot, 'locks'))
+        self.LockingTimeOut = 600#seconds
+
 
     def getLock(self, file):
         if file in self.control:
             l = self.control[file]
-            return 'Lock on file {} granted to {} at {}'.format(l.file, l.who, l.time)
+            ttl = str(l.time + datetime.timedelta(0, self.LockingTimeOut) - datetime.datetime.now())
+            return 'Lock on file {} granted to {}. TTL: {}'.format(l.file, l.who, ttl)
         else:
             return 'OK'
 
