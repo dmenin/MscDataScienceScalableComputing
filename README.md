@@ -90,8 +90,7 @@
 
 Results on the DLTK repo 
 
-![ResultsDLTK](/CyclomaticComplx/Results/DLTK.dltk)
-
+![ResultsDLTK](/CyclomaticComplx/Results/DLTK.png)
 
 
 #### <i class="icon-file"></i> Project 1 - Chat Server:
