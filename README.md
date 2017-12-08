@@ -2,7 +2,7 @@
 
 ### <i class="icon-file"></i> Project 3 - Distributed File System:
 
-[Please read the report located here](DistFileSystem/report.pdf)
+[Please read the report located here](DistFileSystem/Report.pdf)
 
 	
 
