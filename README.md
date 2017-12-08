@@ -22,7 +22,7 @@
 5) Once there are no more jobs. Clients die and server outputs final final on the fomart: "{UnIdentifier}{RepoName}_{nClients}Clients.csv'
 
 
-Results on the DLTK repo. As we can see the total time goes down with the number of workrs until a certain point where the server becomes the bottleneck
+Results on the DLTK repo. As we can see the total time goes down with the number of workers until a certain point where the server becomes the bottleneck
 
 ![ResultsDLTK](/CyclomaticComplx/Results/DLTK.png)
 
