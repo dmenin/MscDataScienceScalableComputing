@@ -10,7 +10,7 @@
 ### <i class="icon-file"></i> Project 2 - Ciclo Complexity:
 
 
-This project consist in constructing a REST service system, focussed on the efficient computation of code complexity for a given repository, utilising a set of nodes as appropriate to minimise execution time from submission to result return.
+This project consists in constructing a REST service system, focussed on the efficient computation of code complexity for a given repository, utilising a set of nodes as appropriate to minimise execution time from submission to result return.
 
 
 * Assumptions:
