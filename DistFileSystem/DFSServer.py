@@ -16,6 +16,7 @@ import random
 import pathlib
 import hashlib
 import argparse
+import requests
 
 
 #GLOBAL VARIABLES
@@ -183,9 +184,12 @@ class FileServer(BaseServer):
 
     fileServerRoot = None
 
-    def __init__(self, fileServerRoot, force):
+    def __init__(self, fileServerRoot, replication_server_address, force):
         BaseServer.__init__(self, fileServerRoot, force)
         self.fileServerRoot = fileServerRoot
+
+        #adress to make the replication server calls
+        self.replication_server_address = replication_server_address
 
     def getFileMd5(self, fname):
         fullFilePath = os.path.join(self.fileServerRoot, fname)
@@ -208,15 +212,27 @@ class FileServer(BaseServer):
         with open(fullFilePath, 'w') as output_file:
             output_file.write(str(filecontent))
 
-        return 'File {} updated'.format(filename)
+        replicamsg = ''
+        if self.replication_server_address is not None:
+            response = requests.post('{}/Replication/{}/create'.format(self.replication_server_address, filename), data=filecontent)
+        try:
+            replicamsg = response.text
+        except:
+            pass
+
+        return 'File {} updated'.format(filename) + replicamsg
 
 
     def createFile(self, filename, filecontent):
         internalFileName = self.generateInternalFileName()
 
-        fullFilePath = os.path.join(FileServerRoot, internalFileName)
+        fullFilePath = os.path.join(self.fileServerRoot, internalFileName)
         output_file = open(fullFilePath, 'w')
         output_file.write(str(filecontent))
+
+        if self.replication_server_address is not None:
+            response = requests.post('{}/Replication/{}/create'.format(self.replication_server_address, internalFileName), data=filecontent)
+
         result = {
             'filename' : filename,
             'internalFileName': internalFileName
@@ -247,18 +263,21 @@ class DirectoryServer():
             print(key, obj[0], obj[1])
         return self.mapper
 
+
+
 '''
 Creates all pre-requisites + return WebApplication with Handlers
 ForceResert = recreate folder
 '''
-def make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, ForceResert):
+def make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, ForceResert, replication_server_address = None):
     fServer = None
     lServer = None
     dServer = None
-    
+
+
     if FileServerRoot is not None:
         print ('Server is a file server')
-        fServer = FileServer(FileServerRoot, ForceResert)
+        fServer = FileServer(FileServerRoot, replication_server_address, ForceResert)
 
     if LockingServerRoot is not None:
         print ('Server is a locking server')
@@ -267,7 +286,6 @@ def make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, ForceResert):
     if isDirectoryServer is not False:
         print ('Server is a Directory server')
         dServer = DirectoryServer()
-
 
     return tornado.web.Application([
          (r"/Files", FileHandler)
@@ -287,45 +305,50 @@ def make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, ForceResert):
 
 
 if __name__ == "__main__":
-    
     # Set these variables accordingly what role you want to server to perform:
     FileServerRoot    = None
     LockingServerRoot = None
-    isDirectoryServer   = False
+    isDirectoryServer = False
 
-    FileServerRoot    = 'c:\\DistFileSystem\\FilesRoot'
-    LockingServerRoot = 'c:\\DistFileSystem\\LockRoot'
-    isDirectoryServer   = True
-    port = 9998
+    #Uncomment this and comment the block bellow to run from one server that performs 3 roles
+#    FileServerRoot    = 'c:\\DistFileSystem\\FilesRoot'
+#    LockingServerRoot = 'c:\\DistFileSystem\\LockRoot'
+#    isDirectoryServer   = True
+#    port = 9998
+
+    # ###########################################################################
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--fport', default='0', help='File Server port.')
+    parser.add_argument('--lport', default='0', help='Locking Server port.')
+    parser.add_argument('--ds', default='False', help='is Directory Server.')
+    args, unparsed = parser.parse_known_args()
+    
+    if args.fport != '0':
+        port = int(args.fport)
+        LockingServerRoot = None
+        isDirectoryServer = False
+        FileServerRoot = 'c:\\DistFileSystem\\FilesRoot'
+    elif args.lport != '0':
+        port = int(args.lport)
+        FileServerRoot    = None
+        isDirectoryServer = False
+        LockingServerRoot = 'c:\\DistFileSystem\\LockRoot'
+    elif args.ds == 'True':
+        FileServerRoot    = None
+        LockingServerRoot = None
+    else:
+        print('Nothing selected. Exiting')
+        os._exit(1)
+    # ##########################################################################
+
+    #IMPORTANT:
+    #The replication_server_address variable indicates if the file server WILL HAVE A SERVER TO REPLICATE TO
+    #This of, course, should come from a config file, but I though to hard code in here to make it less complicated.
+    #Change it to None to prevet the file server from replicating, which means the replication Server, if existing, will be idle
+    replication_server_address = 'http://localhost:{}'.format(port+1)
 
 
-    ###########################################################################
-#    #Uncomment this to run from the command so each server can perform one role
-#    parser = argparse.ArgumentParser()
-#    parser.add_argument('--fport', default='0', help='File Server port.')
-#    parser.add_argument('--lport', default='0', help='Locking Server port.')
-#    parser.add_argument('--ds', default='False', help='is Directory Server.')
-#    
-#    args, unparsed = parser.parse_known_args()
-#    print (args)
-#    print (args.fport)
-#    if args.fport != 0:
-#        port = int(args.fport)
-#        LockingServerRoot = None
-#        isDirectoryServer   = False
-#    elif args.lport !=0:
-#        port = int(args.lport)
-#        FileServerRoot    = None
-#        isDirectoryServer   = False
-#    elif args.ds == 'True':
-#        FileServerRoot    = None
-#        LockingServerRoot = None
-    ##########################################################################
-
-    # Tornado configures logging.
-    #options.parse_command_line()
-
-    app, fServer, lServer, dServer = make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, True)
+    app, fServer, lServer, dServer = make_app(FileServerRoot, LockingServerRoot, isDirectoryServer, True, replication_server_address)
 
     app.listen(port)
     main_loop = tornado.ioloop.IOLoop.current()
