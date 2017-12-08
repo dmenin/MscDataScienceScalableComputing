@@ -75,7 +75,8 @@ class DFSClient(object):
             # asks the locking server if file is available:
             print(requests.get('{}/Locks/{}/'.format(locking_server, fileName)).json())
             
-            # request a Lock:
+            # request a Lock: TODO: change the hard coded String "Client1" to
+            #something that identifies the client
             data = {'action': 'RequestLock', 'who': 'Client1'}
             print(requests.post('{}/Locks/{}/'.format(locking_server, fileName), json=data).text)
         
@@ -166,3 +167,5 @@ c2.closeAndPostBackToServer('MyFile1', localtoken)
 localtoken = c1.openFile('MyFile1')
 c1.writeToFile(localtoken, 'This is client 1 again \n  writing line 7 (Well, I think its \n6 but its actually 7)')
 c1.closeAndPostBackToServer('MyFile1', localtoken)
+
+
