@@ -4,14 +4,19 @@
 
 [Please read the report located here](DistFileSystem/Report.pdf)
 
-	
+
+
 
 ### <i class="icon-file"></i> Project 2 - Ciclo Complexity:
 
+
+This project consist in constructing a REST service system, focussed on the efficient computation of code complexity for a given repository, utilising a set of nodes as appropriate to minimise execution time from submission to result return.
+
+
 * Assumptions:
 
-1) Both, server and each client, will have a copy of the repo. I want to avoid adding the network transmission time and focus on the time it takes to do the calculation
-2) All relevant information (local working directory, repository URL and the Cyclo Server Adress) are be read from the GlobalConfig file
+1) Both, server and each client, will have a copy of the repo. I want to avoid adding up the network transmission time and focus on the time it takes to do the calculation
+2) Config information (local working directory, repository URL and the Cyclo Server Adress) are being read from the GlobalConfig file
 
 * How to run:
 
@@ -25,6 +30,8 @@
 Results on the DLTK repo. As we can see the total time goes down with the number of workers until a certain point where the server becomes the bottleneck
 
 ![ResultsDLTK](/CyclomaticComplx/Results/DLTK.png)
+
+
 
 
 ### <i class="icon-file"></i> Project 1 - Chat Server:
